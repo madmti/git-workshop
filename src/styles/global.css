@@ -22,10 +22,8 @@ body {
 	margin: 0;
 	overflow: hidden;
 	overscroll-behavior-y: none;
-
 	color: var(--color-content);
 	background-color: var(--color-base);
-
 	font-family: 'Cascadia Code', sans-serif;
 }
 
@@ -38,64 +36,49 @@ body {
 .mdx-content {
 	@apply max-w-none text-content/90;
 }
-
 .mdx-content > :first-child {
 	@apply mt-0;
 }
-
 .mdx-content p {
 	@apply leading-7;
 }
-
 .mdx-content a {
 	@apply text-primary underline underline-offset-4 transition-colors hover:text-primary/80;
 }
-
 .mdx-content strong {
 	@apply font-mono font-bold text-primary;
 }
-
 .mdx-content code {
 	@apply rounded border border-content/5 bg-content/10 px-1.5 py-0.5 font-mono text-sm text-primary/90;
 }
-
 .mdx-content pre {
 	@apply overflow-x-auto rounded border border-content/10 bg-content/5 p-4 text-sm;
 }
-
 .mdx-content pre code {
 	@apply border-0 bg-transparent p-0 text-content/90;
 }
-
 .mdx-content h2 {
 	@apply mt-10 mb-4 text-2xl font-bold tracking-tight text-primary uppercase;
 }
-
 .mdx-content h3 {
 	@apply mt-6 mb-2 text-sm font-bold tracking-[0.2em] text-content/50 uppercase;
 }
-
 .mdx-content ul {
 	@apply mt-4 flex flex-col gap-2 pl-6;
 }
-
 .mdx-content ul li {
 	@apply relative text-content/80;
 }
-
 .mdx-content ul li::before {
 	content: '-';
 	@apply absolute -left-4 font-bold text-primary;
 }
-
 .mdx-content ol {
 	@apply mt-4 flex flex-col gap-2 pl-6;
 }
-
 .mdx-content blockquote {
 	@apply border-l-2 border-primary/60 pl-4 text-content/70 italic;
 }
-
 .mdx-content hr {
 	@apply my-8 border-content/10;
 }

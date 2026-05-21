@@ -8,14 +8,9 @@ const clases = defineCollection({
 		title: z.string(),
 		description: z.string(),
 		clase: z.number(),
-
-		// Metadata del taller
 		duracion: z.string(),
-		dificultad: z.enum(['baja', 'media', 'alta']),
-		riesgo: z.enum(['bajo', 'medio', 'alto']),
+		dificultad: z.enum(['facil', 'media', 'dificil']),
 		enfoque: z.enum(['conceptual', 'practico', 'teorico-practico']),
-
-		// Recursos asociados
 		recursos: z
 			.array(
 				z.object({
@@ -25,8 +20,6 @@ const clases = defineCollection({
 				})
 			)
 			.optional(),
-
-		// Navegación
 		draft: z.boolean().default(false)
 	})
 });

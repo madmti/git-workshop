@@ -12,9 +12,9 @@ export default defineConfig({
 	output: 'static',
     site: 'https://madmti.github.io',
     base: '/git-workshop',
-	compressHTML: true,
+    compressHTML: true,
+    trailingSlash: 'always',
 	integrations: [sitemap(), mdx()],
-
 	vite: {
 		plugins: [tailwindcss()]
 	}

@@ -1,5 +1,41 @@
 ---
 import Layout from '@/layouts/Layout.astro';
+import ClaseCard from '@/components/ClaseCard.astro';
+import { getCollection } from 'astro:content';
+
+const clases = (await getCollection('clases')).sort((a, b) => a.data.clase - b.data.clase);
 ---
 
-<Layout> Taller de Git </Layout>
+<Layout>
+	<main class="h-screen overflow-y-auto scroll-smooth px-12 py-10 max-sm:px-6">
+		<header class="mx-auto mb-16 max-w-6xl">
+			<p class="mb-4 font-mono text-xs tracking-widest text-content/40 uppercase">Taller</p>
+			<h1 class="mb-4 text-5xl font-bold text-primary">Fundamentos y Arquitectura de Git</h1>
+			<p class="leading-7 text-content/60">
+				Un recorrido desde la historia de los sistemas de control de versiones hasta los internals
+				de Git — objetos, DAG, packfiles y flujo avanzado.
+			</p>
+		</header>
+
+		<section class="mx-auto max-w-6xl">
+			<h2 class="mb-8 font-mono text-xs tracking-widest text-content/40 uppercase">
+				[ {clases.length} clases ]
+			</h2>
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				{
+					clases.map((clase) => (
+						<ClaseCard
+							clase={clase.data.clase}
+							title={clase.data.title}
+							description={clase.data.description}
+							duracion={clase.data.duracion}
+							dificultad={clase.data.dificultad}
+							draft={clase.data.draft}
+							slug={clase.id}
+						/>
+					))
+				}
+			</div>
+		</section>
+	</main>
+</Layout>
