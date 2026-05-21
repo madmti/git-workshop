@@ -113,7 +113,7 @@ const { Content } = await render(entry);
 				<!-- Slide activo -->
 				<div
 					id="slides-viewport"
-					class="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-y-auto py-6 max-sm:px-6 sm:flex sm:items-center"
+					class="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-y-auto py-6 max-sm:px-6"
 				>
 					<div id="slides-content" class="mdx-content">
 						<!-- Contenido del slide actual se inyecta aquí por JS -->
@@ -177,6 +177,47 @@ const { Content } = await render(entry);
 		let slides = []; // array de strings HTML, uno por slide
 		let current = 0;
 		let slidesReady = false;
+
+		// ─── URL helpers (modo + hash) ───────────────────────────────────────
+		function getModeFromUrl() {
+			const params = new URLSearchParams(window.location.search);
+			return params.get('mode');
+		}
+
+		function setModeInUrl(mode) {
+			const url = new URL(window.location.href);
+			if (mode === 'slides') {
+				url.searchParams.set('mode', 'slides');
+			} else {
+				url.searchParams.delete('mode');
+			}
+			history.replaceState(null, '', url.toString());
+		}
+
+		function getSlideFromHash() {
+			const hash = window.location.hash.replace('#', '').trim();
+			if (!hash) return null;
+			const match = hash.match(/^slide-(\d+)$/i);
+			if (!match) return null;
+			const index = Number(match[1]) - 1;
+			return Number.isNaN(index) ? null : index;
+		}
+
+		function setSlideHash(index) {
+			const hash = `slide-${index + 1}`;
+			if (window.location.hash !== `#${hash}`) {
+				const url = new URL(window.location.href);
+				url.hash = hash;
+				history.replaceState(null, '', url.toString());
+			}
+		}
+
+		function clearHash() {
+			if (!window.location.hash) return;
+			const url = new URL(window.location.href);
+			url.hash = '';
+			history.replaceState(null, '', url.toString());
+		}
 
 		// ─── Parsear slides desde el modo doc ───────────────────────────────
 		// Los slides están separados por <hr> en el HTML renderizado por MDX.
@@ -245,6 +286,11 @@ const { Content } = await render(entry);
 			// Botones prev/next
 			if (btnPrev) btnPrev.disabled = safe === 0;
 			if (btnNext) btnNext.disabled = safe === slides.length - 1;
+
+			// Actualizar hash para compartir
+			if (!modeSlides.classList.contains('hidden')) {
+				setSlideHash(safe);
+			}
 		}
 
 		// ─── Cambiar modo ────────────────────────────────────────────────────
@@ -264,11 +310,15 @@ const { Content } = await render(entry);
 				btnSlides.classList.remove(...INACTIVE);
 				btnSlides.classList.add(...ACTIVE);
 
+				// Usar hash si existe
+				const fromHash = getSlideFromHash();
+				if (fromHash !== null) current = fromHash;
+
 				// Renderizar slide actual
 				render(current);
 
-				// Guardar preferencia
-				sessionStorage.setItem('clase-mode', 'slides');
+				// Guardar modo en URL
+				setModeInUrl('slides');
 			} else {
 				// Mostrar doc, ocultar slides
 				modeSlides.classList.add('hidden');
@@ -281,7 +331,9 @@ const { Content } = await render(entry);
 				btnDoc.classList.remove(...INACTIVE);
 				btnDoc.classList.add(...ACTIVE);
 
-				sessionStorage.setItem('clase-mode', 'doc');
+				// Limpiar URL (default doc)
+				setModeInUrl('doc');
+				clearHash();
 			}
 		}
 
@@ -306,10 +358,17 @@ const { Content } = await render(entry);
 			if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') render(current - 1);
 		});
 
+		// Responder a cambios de hash (ej: compartir slide)
+		window.addEventListener('hashchange', () => {
+			if (modeSlides.classList.contains('hidden')) return;
+			const fromHash = getSlideFromHash();
+			if (fromHash !== null) render(fromHash);
+		});
+
 		// ─── Estado inicial ──────────────────────────────────────────────────
-		// Leer preferencia guardada o default a doc
-		const saved = sessionStorage.getItem('clase-mode') ?? 'doc';
-		setMode(saved);
+		// Leer modo desde query param (?mode=slides), default doc
+		const initialMode = getModeFromUrl() === 'slides' ? 'slides' : 'doc';
+		setMode(initialMode);
 	})();
 </script>
 
