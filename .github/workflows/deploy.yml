@@ -1,0 +1,66 @@
+# Este workflow compila y despliega un sitio Astro a GitHub Pages automaticamente.
+
+name: Astro Deploy to GitHub Pages
+on:
+  push:
+    tags:
+      - "latest"
+  workflow_dispatch: # <- Boton manual en GitHub
+
+permissions:
+  contents: read
+  pages: write      # Necesario para desplegar
+  id-token: write   # Necesario para autenticación OIDC
+
+jobs:
+  # BUILD
+  build:
+    name: Build Astro
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare pnpm
+        run: corepack prepare pnpm@10.9.0 --activate
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Approve Build Scripts
+        run: pnpm approve-builds
+
+      - name: Rebuild Native Dependencies
+        run: pnpm rebuild
+
+      - name: Build
+        run: pnpm build
+
+      # UPLOAD ARTIFACT
+      # Sube la carpeta 'dist' como artifact para GitHub Pages, asi lo puede usar el siguiente job.
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+          name: github-pages
+
+  # DEPLOY
+  # Llama al workflow reutilizable para hacer el deploy y auditoria con Lighthouse
+  deploy:
+    name: Call Shared Deploy
+    needs: build
+    uses: lyoss-usm/workflows/.github/workflows/gh-pages-deploy.yml@main
+    with:
+      # CONFIGURACION DE DEPLOY
+      # Configura el entorno de deploy para usar el environment github-pages
+      # y activar la auditoria con Lighthouse al final del deploy
+      environment_name: 'github-pages'
+      run_audit: false
