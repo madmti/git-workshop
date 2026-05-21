@@ -10,7 +10,6 @@ const clases = defineCollection({
 		clase: z.number(),
 		duracion: z.string(),
 		dificultad: z.enum(['facil', 'media', 'dificil']),
-		enfoque: z.enum(['conceptual', 'practico', 'teorico-practico']),
 		recursos: z
 			.array(
 				z.object({

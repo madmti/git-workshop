@@ -15,35 +15,75 @@ const { Content } = await render(entry);
 ---
 
 <Layout>
-	<div class="h-screen overflow-y-auto scroll-smooth">
-		<!-- Header de la clase -->
-		<header class="border-b border-content/10 px-12 py-8 max-sm:px-6">
+	<div class="flex h-screen flex-col overflow-hidden">
+		<!-- Header -->
+		<header class="shrink-0 border-b border-content/10 px-12 py-10 max-sm:px-6">
 			<div class="mx-auto max-w-6xl">
-				<a
-					href={import.meta.env.BASE_URL}
-					class="mb-6 inline-block font-mono text-xs tracking-widest text-content/40 uppercase transition-colors hover:text-primary"
-				>
-					Volver
-				</a>
-				<div class="flex flex-wrap items-start justify-between gap-4">
-					<div>
-						<p class="mb-2 font-mono text-xs tracking-widest text-content/40 uppercase">
-							Clase {String(entry.data.clase).padStart(2, '0')}
-						</p>
-						<h1 class="mb-3 text-4xl font-bold text-primary">{entry.data.title}</h1>
-						<p class="max-w-6xl leading-7 text-content/60">{entry.data.description}</p>
+				<div class="mx-auto mb-8 flex max-w-6xl items-center justify-between">
+					<a
+						href={import.meta.env.BASE_URL}
+						class="inline-block font-mono text-xs tracking-widest text-content/40 uppercase transition-colors hover:text-primary"
+					>
+						Volver
+					</a>
+					<div class="flex items-center gap-2 text-xs tracking-widest text-content/60 uppercase">
+						<span class="text-content/50">Theme</span>
+						<button
+							data-theme="dark"
+							type="button"
+							class="theme-option cursor-pointer tracking-wide uppercase"
+						>
+							Dark
+						</button>
+						<span class="pointer-events-none text-content/50">|</span>
+						<button
+							data-theme="light"
+							type="button"
+							class="theme-option cursor-pointer tracking-wide uppercase"
+						>
+							Light
+						</button>
 					</div>
 				</div>
+				<div class="flex flex-wrap items-end justify-between gap-4">
+					<div>
+						<p class="mb-1 font-mono text-xs tracking-widest text-content/40 uppercase">
+							Clase {String(entry.data.clase).padStart(2, '0')}
+						</p>
+						<h1 class="text-3xl font-bold text-primary">{entry.data.title}</h1>
+					</div>
+					<!-- Controles de modo + theme -->
+					<div class="flex flex-wrap items-center gap-4">
+						<div class="flex items-center gap-2">
+							<button
+								id="btn-doc"
+								type="button"
+								class="cursor-pointer rounded border px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors"
+							>
+								Doc
+							</button>
+							<button
+								id="btn-slides"
+								type="button"
+								class="cursor-pointer rounded border px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors"
+							>
+								Slides
+							</button>
+						</div>
+					</div>
+				</div>
+
 				<!-- Metadata -->
-				<div class="mt-6 flex flex-wrap gap-6">
-					<span class="font-mono text-xs text-content/40">⏱ {entry.data.duracion}</span>
+				<div class="mt-3 flex flex-wrap gap-5">
+					<span class="font-mono text-xs text-content/40">{entry.data.duracion}</span>
 					<span class="font-mono text-xs text-content/40">{entry.data.dificultad}</span>
 				</div>
-				<!-- Recursos opcionales -->
+
+				<!-- Recursos -->
 				{
 					entry.data.recursos && entry.data.recursos.length > 0 && (
-						<div class="mt-6 flex flex-wrap gap-3">
-							{entry.data.recursos.map((r) => (
+						<div class="mt-3 flex flex-wrap gap-2">
+							{entry.data.recursos.map((r: { url: string; titulo: string }) => (
 								<a
 									href={r.url}
 									target="_blank"
@@ -59,11 +99,253 @@ const { Content } = await render(entry);
 			</div>
 		</header>
 
-		<!-- Contenido -->
-		<main class="mx-auto max-w-6xl">
-			<div class="mdx-content mt-10">
-				<Content />
+		<!-- Área de contenido — ocupa todo el espacio restante -->
+		<div class="relative min-h-0 flex-1">
+			<!-- MODO DOC: scroll normal -->
+			<div id="mode-doc" class="mx-auto h-full max-w-6xl overflow-y-auto py-6 max-sm:px-6">
+				<div class="mdx-content">
+					<Content />
+				</div>
 			</div>
-		</main>
+
+			<!-- MODO SLIDES: carrusel -->
+			<div id="mode-slides" class="hidden h-full flex-col">
+				<!-- Slide activo -->
+				<div
+					id="slides-viewport"
+					class="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-y-auto py-6 max-sm:px-6"
+				>
+					<div id="slides-content" class="mdx-content">
+						<!-- Contenido del slide actual se inyecta aquí por JS -->
+					</div>
+				</div>
+
+				<!-- Barra inferior de navegación -->
+				<div class="shrink-0 border-t border-content/10 px-12 py-4 max-sm:px-6">
+					<div class="mx-auto flex max-w-4xl items-center justify-between gap-4">
+						<!-- Dots -->
+						<div id="slides-dots" class="flex flex-wrap gap-2"></div>
+
+						<!-- Contador + botones -->
+						<div class="flex items-center gap-4">
+							<span id="slides-counter" class="font-mono text-xs text-content/40"> 1 / 1 </span>
+							<div class="flex gap-2">
+								<button
+									id="btn-prev"
+									type="button"
+									class="flex cursor-pointer items-center gap-1.5 rounded border border-content/20 px-3 py-1.5 font-mono text-xs tracking-widest uppercase transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-30"
+								>
+									<span>◀</span>
+									<span>Prev</span>
+								</button>
+								<button
+									id="btn-next"
+									type="button"
+									class="flex cursor-pointer items-center gap-1.5 rounded border border-content/20 px-3 py-1.5 font-mono text-xs tracking-widest uppercase transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-30"
+								>
+									<span>Next</span>
+									<span>▶</span>
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 </Layout>
+
+<script is:inline>
+	(function () {
+		// ─── Referencias DOM ────────────────────────────────────────────────
+		const modeDoc = document.getElementById('mode-doc');
+		const modeSlides = document.getElementById('mode-slides');
+		const btnDoc = document.getElementById('btn-doc');
+		const btnSlides = document.getElementById('btn-slides');
+		const viewport = document.getElementById('slides-viewport');
+		const content = document.getElementById('slides-content');
+		const dotsRoot = document.getElementById('slides-dots');
+		const counter = document.getElementById('slides-counter');
+		const btnPrev = document.getElementById('btn-prev');
+		const btnNext = document.getElementById('btn-next');
+
+		// ─── Clases de estilo para botones de modo ───────────────────────────
+		const ACTIVE = ['border-primary', 'text-primary'];
+		const INACTIVE = ['border-content/10', 'text-content/40'];
+
+		// ─── Estado del carrusel ─────────────────────────────────────────────
+		let slides = []; // array de strings HTML, uno por slide
+		let current = 0;
+		let slidesReady = false;
+
+		// ─── Parsear slides desde el modo doc ───────────────────────────────
+		// Los slides están separados por <hr> en el HTML renderizado por MDX.
+		// Se parsea UNA sola vez la primera vez que se activa el modo slides.
+		function buildSlides() {
+			if (slidesReady) return;
+
+			const docDiv = modeDoc.querySelector('.mdx-content');
+			if (!docDiv) return;
+
+			// Clonar para no mutar el DOM del modo doc
+			const clone = docDiv.cloneNode(true);
+
+			// Separar por <HR> — cada HR delimita un slide
+			const raw = clone.innerHTML;
+			const parts = raw
+				.split(/<hr\s*\/?>/i)
+				.map((s) => s.trim())
+				.filter(Boolean);
+
+			slides = parts.length > 0 ? parts : [raw];
+			slidesReady = true;
+
+			buildDots();
+		}
+
+		// ─── Construir indicadores (dots) ────────────────────────────────────
+		function buildDots() {
+			dotsRoot.innerHTML = '';
+			slides.forEach((_, i) => {
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.dataset.index = String(i);
+				btn.className = 'h-2 w-2 rounded-full border transition-colors';
+				dotsRoot.appendChild(btn);
+			});
+		}
+
+		// ─── Renderizar slide actual ─────────────────────────────────────────
+		function render(index) {
+			if (!slides.length) return;
+			const safe = Math.max(0, Math.min(index, slides.length - 1));
+			current = safe;
+
+			// Contenido
+			content.innerHTML = slides[safe];
+
+			// Scroll al tope del viewport
+			if (viewport) viewport.scrollTop = 0;
+
+			// Contador
+			if (counter) counter.textContent = `${safe + 1} / ${slides.length}`;
+
+			// Dots
+			const dots = dotsRoot ? Array.from(dotsRoot.children) : [];
+			dots.forEach((dot, i) => {
+				if (i === safe) {
+					dot.classList.add('bg-primary', 'border-primary');
+					dot.classList.remove('bg-content/10', 'border-content/20');
+				} else {
+					dot.classList.remove('bg-primary', 'border-primary');
+					dot.classList.add('bg-content/10', 'border-content/20');
+				}
+			});
+
+			// Botones prev/next
+			if (btnPrev) btnPrev.disabled = safe === 0;
+			if (btnNext) btnNext.disabled = safe === slides.length - 1;
+		}
+
+		// ─── Cambiar modo ────────────────────────────────────────────────────
+		function setMode(mode) {
+			if (mode === 'slides') {
+				// Asegurar que los slides estén parseados
+				buildSlides();
+
+				// Mostrar slides, ocultar doc
+				modeDoc.classList.add('hidden');
+				modeSlides.classList.remove('hidden');
+				modeSlides.classList.add('flex');
+
+				// Estilos de botones
+				btnDoc.classList.remove(...ACTIVE);
+				btnDoc.classList.add(...INACTIVE);
+				btnSlides.classList.remove(...INACTIVE);
+				btnSlides.classList.add(...ACTIVE);
+
+				// Renderizar slide actual
+				render(current);
+
+				// Guardar preferencia
+				sessionStorage.setItem('clase-mode', 'slides');
+			} else {
+				// Mostrar doc, ocultar slides
+				modeSlides.classList.add('hidden');
+				modeSlides.classList.remove('flex');
+				modeDoc.classList.remove('hidden');
+
+				// Estilos de botones
+				btnSlides.classList.remove(...ACTIVE);
+				btnSlides.classList.add(...INACTIVE);
+				btnDoc.classList.remove(...INACTIVE);
+				btnDoc.classList.add(...ACTIVE);
+
+				sessionStorage.setItem('clase-mode', 'doc');
+			}
+		}
+
+		// ─── Eventos ─────────────────────────────────────────────────────────
+		btnDoc.addEventListener('click', () => setMode('doc'));
+		btnSlides.addEventListener('click', () => setMode('slides'));
+
+		btnPrev?.addEventListener('click', () => render(current - 1));
+		btnNext?.addEventListener('click', () => render(current + 1));
+
+		dotsRoot?.addEventListener('click', (e) => {
+			const target = e.target;
+			if (!(target instanceof HTMLElement)) return;
+			const index = Number(target.dataset.index);
+			if (!Number.isNaN(index)) render(index);
+		});
+
+		// Navegación con teclado (solo activa en modo slides)
+		document.addEventListener('keydown', (e) => {
+			if (modeSlides.classList.contains('hidden')) return;
+			if (e.key === 'ArrowRight' || e.key === 'ArrowDown') render(current + 1);
+			if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') render(current - 1);
+		});
+
+		// ─── Estado inicial ──────────────────────────────────────────────────
+		// Leer preferencia guardada o default a doc
+		const saved = sessionStorage.getItem('clase-mode') ?? 'doc';
+		setMode(saved);
+	})();
+</script>
+
+<script is:inline>
+	(() => {
+		const body = document.body;
+		const themeOptions = document.querySelectorAll('button.theme-option');
+
+		if (!themeOptions.length) return;
+
+		const setActiveOption = (buttons, value, attr) => {
+			buttons.forEach((button) => {
+				const isActive = button.getAttribute(attr) === value;
+				button.classList.toggle('text-primary', isActive);
+				button.classList.toggle('text-content/60', !isActive);
+			});
+		};
+
+		const applyTheme = (theme) => {
+			if (theme === 'light') {
+				body.classList.add('light');
+			} else {
+				body.classList.remove('light');
+			}
+			setActiveOption(themeOptions, theme, 'data-theme');
+		};
+
+		const savedTheme = localStorage.getItem('theme') || 'light';
+		applyTheme(savedTheme);
+
+		themeOptions.forEach((button) => {
+			button.addEventListener('click', () => {
+				const nextTheme = button.getAttribute('data-theme') || 'light';
+				applyTheme(nextTheme);
+				localStorage.setItem('theme', nextTheme);
+			});
+		});
+	})();
+</script>

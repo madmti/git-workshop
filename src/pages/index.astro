@@ -8,6 +8,18 @@ const clases = (await getCollection('clases')).sort((a, b) => a.data.clase - b.d
 
 <Layout>
 	<main class="h-screen overflow-y-auto scroll-smooth px-12 py-10 max-sm:px-6">
+		<div class="mx-auto mb-8 flex max-w-6xl items-center justify-end">
+			<div class="flex items-center gap-2 text-xs tracking-widest text-content/60 uppercase">
+				<span class="text-content/50">Theme</span>
+				<button data-theme="dark" type="button" class="theme-option cursor-pointer tracking-wide uppercase">
+					Dark
+				</button>
+				<span class="pointer-events-none text-content/50">|</span>
+				<button data-theme="light" type="button" class="theme-option cursor-pointer tracking-wide uppercase">
+					Light
+				</button>
+			</div>
+		</div>
 		<header class="mx-auto mb-16 max-w-6xl">
 			<p class="mb-4 font-mono text-xs tracking-widest text-content/40 uppercase">Taller</p>
 			<h1 class="mb-4 text-5xl font-bold text-primary">Fundamentos y Arquitectura de Git</h1>
@@ -39,3 +51,40 @@ const clases = (await getCollection('clases')).sort((a, b) => a.data.clase - b.d
 		</section>
 	</main>
 </Layout>
+
+<script is:inline>
+	(() => {
+		const body = document.body;
+		const themeOptions = document.querySelectorAll('button.theme-option');
+
+		if (!themeOptions.length) return;
+
+		const setActiveOption = (buttons, value, attr) => {
+			buttons.forEach((button) => {
+				const isActive = button.getAttribute(attr) === value;
+				button.classList.toggle('text-primary', isActive);
+				button.classList.toggle('text-content/60', !isActive);
+			});
+		};
+
+		const applyTheme = (theme) => {
+			if (theme === 'light') {
+				body.classList.add('light');
+			} else {
+				body.classList.remove('light');
+			}
+			setActiveOption(themeOptions, theme, 'data-theme');
+		};
+
+		const savedTheme = localStorage.getItem('theme') || 'light';
+		applyTheme(savedTheme);
+
+		themeOptions.forEach((button) => {
+			button.addEventListener('click', () => {
+				const nextTheme = button.getAttribute('data-theme') || 'light';
+				applyTheme(nextTheme);
+				localStorage.setItem('theme', nextTheme);
+			});
+		});
+	})();
+</script>
