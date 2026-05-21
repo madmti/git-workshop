@@ -1,0 +1,61 @@
+---
+import Image from './Image.astro';
+
+interface ImageItem {
+	alt: string;
+	url: string;
+	tw?: string;
+}
+
+interface Props {
+	images: ImageItem[];
+	layout?: 'flex' | 'grid' | 'custom';
+	gapClass?: string;
+	gridColsClass?: string;
+	containerTw?: string;
+	imageTw?: string;
+	position?:
+		| 'top'
+		| 'center'
+		| 'bottom'
+		| 'left'
+		| 'right'
+		| 'top-left'
+		| 'top-right'
+		| 'bottom-left'
+		| 'bottom-right';
+	aspect?: 'square' | 'wide' | 'auto' | 'stretch';
+	fit?: 'cover' | 'contain';
+}
+
+const {
+	images = [],
+	layout = 'flex',
+	gapClass = 'gap-4',
+	gridColsClass = 'grid-cols-2 md:grid-cols-4',
+	containerTw = '',
+	imageTw = '',
+	position = 'center',
+	aspect = 'wide',
+	fit = 'cover'
+} = Astro.props;
+
+const layoutClass = {
+	flex: `flex flex-wrap items-center ${gapClass}`,
+	grid: `grid ${gapClass} ${gridColsClass}`,
+	custom: ''
+}[layout];
+---
+
+<div class={`${layoutClass} ${containerTw}`}>
+	{images.map((image) => (
+		<Image
+			alt={image.alt}
+			url={image.url}
+			position={position}
+			aspect={aspect}
+			fit={fit}
+			tw={`${imageTw} ${image.tw ?? ''}`.trim()}
+		/>
+	))}
+</div>

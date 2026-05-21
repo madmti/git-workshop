@@ -1,0 +1,60 @@
+---
+interface Props {
+	alt: string;
+	url: string;
+	position:
+		| 'top'
+		| 'center'
+		| 'bottom'
+		| 'left'
+		| 'right'
+		| 'top-left'
+		| 'top-right'
+		| 'bottom-left'
+		| 'bottom-right';
+	aspect: 'square' | 'wide' | 'auto' | 'stretch';
+	fit: 'cover' | 'contain';
+	tw: string;
+}
+
+const {
+	alt = 'Lugar de trabajo',
+	url = 'https://i.etsystatic.com/30097568/r/il/71a49c/5958491123/il_1140xN.5958491123_lhzi.jpg',
+	position = 'center',
+	aspect = 'wide',
+	fit = 'cover',
+	tw = ''
+} = Astro.props;
+
+const positionClass = {
+	top: 'object-top',
+	center: 'object-center',
+	bottom: 'object-bottom',
+	left: 'object-left',
+	right: 'object-right',
+	'top-left': 'object-left-top',
+	'top-right': 'object-right-top',
+	'bottom-left': 'object-left-bottom',
+	'bottom-right': 'object-right-bottom'
+}[position];
+
+const aspectClass = {
+	square: 'aspect-square',
+	wide: 'aspect-21/9',
+	auto: 'aspect-auto',
+	stretch: 'aspect-video'
+}[aspect];
+
+const fitClass = {
+	cover: 'object-cover',
+	contain: 'object-contain'
+}[fit];
+---
+
+<div class={`relative mb-4 w-full overflow-hidden border border-content/10 bg-content/5 ${tw}`}>
+	<img
+		src={url}
+		alt={alt}
+		class={`${aspectClass} h-auto w-full ${fitClass} ${positionClass} opacity-90 transition-opacity duration-100 hover:opacity-100`}
+	/>
+</div>

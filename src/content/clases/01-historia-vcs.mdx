@@ -10,14 +10,29 @@ recursos:
 draft: false
 ---
 
-## El problema que Git resuelve
+import ImageSet from 'MDX/ImageSet.astro';
 
-Versionar a mano es el origen de todo el caos...
+## Sistemas de Control de Versiones (VCS)
 
-## Evolución de los VCS
+Un sistema de control de versiones es una herramienta que registra los cambios realizados en un archivo o conjunto de archivos a lo largo del tiempo,
+permitiendo recuperar versiones especificas mas adelante.
 
-De local a centralizado a distribuido.
+<ImageSet
+	layout="flex"
+	containerTw="my-4"
+	imageTw="max-w-24"
+	aspect="square"
+	fit="contain"
+	images={[
+		{ alt: 'Bazaar logo', url: '/git-workshop/01/bazaar.png' },
+		{ alt: 'Git logo', url: '/git-workshop/01/git.png' },
+		{ alt: 'Mercurial logo', url: '/git-workshop/01/mercurial.jpg' },
+		{ alt: 'Subversion logo', url: '/git-workshop/01/subversion.svg' }
+	]}
+/>
 
----
+### Tipos de Control de Versiones
 
-Fin..
+- **Local**
+- **Centralizado (CVCS)**
+- **Distribuido (DVCS)**
