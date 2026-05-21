@@ -16,7 +16,6 @@ const clases = defineCollection({
 				z.object({
 					titulo: z.string(),
 					url: z.url(),
-					tipo: z.enum(['libro', 'articulo', 'video', 'ejercicio'])
 				})
 			)
 			.optional(),
