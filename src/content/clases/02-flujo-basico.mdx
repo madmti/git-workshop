@@ -16,7 +16,10 @@ import SideImage from 'MDX/SideImage.astro';
 import FullTitle from 'MDX/FullTitle.astro';
 
 <FullTitle>
-    Fundamentos de **Git** (parte 2)
+    <span class="flex flex-col items-center">
+        <p>Fundamentos de **Git** (parte 2)</p>
+        <small class="text-lg mt-2">Clonar, Inicializar y Guardar Cambios</small>
+    </span>
 </FullTitle>
 
 ---
@@ -377,6 +380,104 @@ Al ejecutar, arrancara el editor que configuramos usando `git config --global co
 
 ---
 
+### La forma rapida
+
+Tambien podemos indicar el mensaje de confirmacion directamente en el comando, esta es la forma convencional de realizar commits ya que es mas rapida:
+
+<br/>
+
+```bash
+git commit -m "feat: nueva funcionalidad!"
+```
+
+<br/>
+
+Tambien podemos agregarle la opcion `-a` para que _Git_ prepare automaticamente todos los archivos rastreados antes de confirmarlos,
+ahorrandote el paso de `git add`:
+
+<br/>
+
+```bash
+git commit -am "fix: terrible bug de aliasing"
+```
+
+---
+
+## Eliminar Archivos
+
+Para eliminar archivos de _Git_, debes eliminarlos de los archivos rastreados (del area de preparacion) y luego confirmar.
+Para eso existe el comando `git rm`, que ademas elimina el archivo de tu directorio de trabajo de manera que no aparezca la proxima vez como un archivo no rastreado.
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 items-center justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+    fit="square"
+	fit="contain"
+	images={[
+		{ alt: 'Output de git rm', url: '/git-workshop/02/out-git-rm.png' },
+		{ alt: 'Output ls despues de git rm', url: '/git-workshop/02/out-ls-after-rm.png' },
+	]}
+/>
+
+Tambien es posible solo quitarlos del area de preparacion (_staging_) sin eliminarlos del disco, usando:
+
+<br />
+
+```bash
+git rm --cached <archivo>
+```
+
+<br/>
+
+> En general los comandos de git que aceptan nombres de archivo, tambien aceptan patrones `glob`, ej: `git rm log/\*.txt`
+
+---
+
+## Cambiar el nombre de los archivos
+
+A diferencia de muchos _VCSs_, _Git_ no rastrea explicitamente los cambios de nombre en archivos. Si renombras un archivo en _Git_,
+no se guardara ningun metadato que indique que renombraste el archivo. Sin embargo, Git es bastante listo como para detectar estos cambios luego que los has hehco.
+Por esto, resulta confuso que _Git_ tenga un comando `mv`. Si quieres renombrar un archivo en _Git_, puedes ejecutar algo como:
+
+<br/>
+
+```bash
+git mv file_old file_new
+```
+
+<br/>
+
+Tambien si luego ejecutas `git status`, veras que _Git_ lo considera como un renombramiento, ejemplo `git mv README.md README`:
+
+<br/>
+
+```bash
+git status
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+    renamed:    README.md -> README
+```
+
+---
+
+<FullTitle>
+    <span class="flex flex-col items-center">
+        <p>Fundamentos de **Git** (parte 3)</p>
+        <small class="text-lg mt-2">Historial, Deshacer, Remotos y Alias</small>
+    </span>
+</FullTitle>
+
+---
+
+
+
+---
+
+
 ## Recursos
 
-- [Pro Git - Cap. 2]("https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository"): Desde `2.1` a `2.8` (todo el capitulo 2)
+- [Pro Git - Cap. 2]("https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository"): Desde `2.1` a `2.8` (excepto `2.6`)
