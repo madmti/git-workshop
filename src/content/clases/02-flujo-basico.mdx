@@ -38,23 +38,17 @@ La segunda es clonar un repositorio existente en _Git_ desde otro servidor.
 git init
 ```
 
-<br/>
-
 Esto crea un subdirectorio `.git/`, el cual contiene todos los archivos necesarios del repositorio.
 Todavia no hay nada en tu proyecto que este bajo seguimiento.
 
 Para empezar a controlar versiones de archivos existentes, tenemos que comenzar el seguimiento de esos archivos y hace una confirmacion inicial.
 Esto se consigue con unos pocos comandos `git add` para especificar que archivos queremos controlar, seguidos de un `git commit` para confirmar los cambios:
 
-<br/>
-
 ```bash
 git add *.c
 git add LICENSE
 git commit -m 'initial project version'
 ```
-
-<br/>
 
 Veremos lo que hacen estos comandos mas adelante. Por ahora, tenemos un repositorio de _Git_ con archivos bajo seguimiento y una confirmacion inicial.
 
@@ -72,19 +66,13 @@ al estado en el que estaba cuando fue clonado.
 Podemos clonar un repositorio con `git clone [url]`.
 Por ejemplo si quisieramos clonar la libreria de _Git_ llamada `libgit2` podemos hacer algo asi:
 
-<br/>
-
 ```bash
 git clone https://github.com/libgit2/libgit2
 ```
 
-<br/>
-
 Esto crea un directorio llamado `libgit2/`, inicializa un directorio `.git/` en su interior, descarga toda la informacion de ese repositorio y saca una copia de trabajo de la ultima version.
 
 Si quisieramos clonarlo con otro nombre que no sea `libgit2`, podemos especificarlo asi:
-
-<br/>
 
 ```bash
 git clone https://github.com/libgit2/libgit2 nombre
@@ -170,13 +158,9 @@ Si el archivo no existia antes y ejecutar `git status`, veras el archivo sin ras
 
 Para comenzar a rastrear un archivo debes usar el commando `git add`. Para comenzar a rastrar el archivo `README`, puede ejecutar lo siguiente:
 
-<br/>
-
 ```bash
 git add README
 ```
-
-<br/>
 
 Ahora si vuelves a ver el estado del proyecto, veras que el archivo `README` esta siendo rastreado y esta preparado para ser confirmado:
 
@@ -343,17 +327,11 @@ Tambien podemos ver que hemos preparado hasta ahora, con `git diff --staged` o `
 Ahora que el area de preparacion (_staging_) esta como queremos, podemos confirmar los cambios.
 La forma sencilla de confirmar es:
 
-<br/>
-
 ```bash
 git commit
 ```
 
-<br />
-
 Al ejecutar, arrancara el editor que configuramos usando `git config --global core.editor <editor>`:
-
-<br />
 
 ```
 
@@ -384,18 +362,12 @@ Al ejecutar, arrancara el editor que configuramos usando `git config --global co
 
 Tambien podemos indicar el mensaje de confirmacion directamente en el comando, esta es la forma convencional de realizar commits ya que es mas rapida:
 
-<br/>
-
 ```bash
 git commit -m "feat: nueva funcionalidad!"
 ```
 
-<br/>
-
 Tambien podemos agregarle la opcion `-a` para que _Git_ prepare automaticamente todos los archivos rastreados antes de confirmarlos,
 ahorrandote el paso de `git add`:
-
-<br/>
 
 ```bash
 git commit -am "fix: terrible bug de aliasing"
@@ -423,13 +395,9 @@ Para eso existe el comando `git rm`, que ademas elimina el archivo de tu directo
 
 Tambien es posible solo quitarlos del area de preparacion (_staging_) sin eliminarlos del disco, usando:
 
-<br />
-
 ```bash
 git rm --cached <archivo>
 ```
-
-<br/>
 
 > En general los comandos de git que aceptan nombres de archivo, tambien aceptan patrones `glob`, ej: `git rm log/\*.txt`
 
@@ -441,17 +409,11 @@ A diferencia de muchos _VCSs_, _Git_ no rastrea explicitamente los cambios de no
 no se guardara ningun metadato que indique que renombraste el archivo. Sin embargo, Git es bastante listo como para detectar estos cambios luego que los has hehco.
 Por esto, resulta confuso que _Git_ tenga un comando `mv`. Si quieres renombrar un archivo en _Git_, puedes ejecutar algo como:
 
-<br/>
-
 ```bash
 git mv file_old file_new
 ```
 
-<br/>
-
 Tambien si luego ejecutas `git status`, veras que _Git_ lo considera como un renombramiento, ejemplo `git mv README.md README`:
-
-<br/>
 
 ```bash
 git status
@@ -473,10 +435,349 @@ Changes to be committed:
 
 ---
 
-> En desarrollo..
+## Ver Historial de Confirmaciones
+
+La herramienta mas basica y potente para ver el historial es `git log`.
+Para los siguientes ejemplos se usara el repositorio `simplegit`.
+
+```bash
+git clone https://github.com/schacon/simplegit-progit
+```
+
+Cuando ejecutes `git log` sobre este repositorio, deberias ver una salida similar a esta:
+
+<Image
+    url="/git-workshop/02/out-git-log.png"
+    alt="Output de git log"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+El comando `git log` proporciona una gran cantidad de opcoines para mostrarte exactamente lo que buscas.
 
 ---
 
+### Opciones `-p` `-2`
+Una de las opciones mas utiles es `-p`, que muestra las diferencias en cada confirmacion.
+Tambien se puede usar `-2` para limitar a las ultimas 2 entradas del historial.
+
+<Image
+    url="/git-workshop/02/out-git-log-p-2.png"
+    alt="Output de git log -p -2"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+---
+
+### Opcion `--stat`
+
+Si quieres ver estadisticas de cada confirmacion puedes usar la opcion `--stat`.
+
+<Image
+    url="/git-workshop/02/out-git-log-stat.png"
+    alt="Output de git log --stat"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+---
+
+### Opcion `--pretty`
+
+Esta opcion es realmente util, porque modifica el formato de la salida.
+Tienes unos cuantos estilos disponibles, la sub-opcion `oneline` imprime cada confirmacion en una unica linea.
+
+<Image
+    url="/git-workshop/02/out-git-log-pretty-online.png"
+    alt="Output de git log --pretty=oneline"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-6xl my-4 mx-auto"
+/>
+
+---
+
+### Opcion `--pretty=format`
+
+La opcion mas interesante es `format`, que te permite especificar tu propio formato.
+Por ejemplo usando `%h`, `%an`, `%ar` y `%s`:
+
+<Image
+    url="/git-workshop/02/out-git-log-pretty-format.png"
+    alt="Output de git log --pretty=format"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-6xl my-4 mx-auto"
+/>
+
+---
+
+### Tabla de opciones utiles para `git log --pretty=format`
+
+| Opción | Descripción de la salida |
+| --- | --- |
+| `%H` | Hash de la confirmación |
+| `%h` | Hash de la confirmación abreviado |
+| `%T` | Hash del árbol |
+| `%t` | Hash del árbol abreviado |
+| `%P` | Hashes de las confirmaciones padre |
+| `%p` | Hashes de las confirmaciones padre abreviados |
+| `%an` | Nombre del autor |
+| `%ae` | Dirección de correo del autor |
+| `%ad` | Fecha de autoría (el formato respeta la opción `--date`) |
+| `%ar` | Fecha de autoría, relativa |
+| `%cn` | Nombre del confirmador |
+| `%ce` | Dirección de correo del confirmador |
+| `%cd` | Fecha de confirmación |
+| `%cr` | Fecha de confirmación, relativa |
+| `%s` | Asunto |
+
+---
+
+### Opcion `--graph`
+
+Las sub-opciones `oneline` y `format` son especialmente utiles combinadas con la opcion `--graph`.
+Esta añade un mini grafico `ASCII` mostrando tu historial de ramificaciones y uniones (_branches & merges_)
+
+<Image
+    url="/git-workshop/02/out-git-log-pretty-format-graph.png"
+    alt="Output de git log --pretty=format.. --graph"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-6xl my-4 mx-auto"
+/>
+
+---
+
+### Tabla de opciones tipicas de `git log`
+
+| Opción | Descripción |
+| :--- | :--- |
+| `-p` | Muestra el parche introducido en cada confirmación. |
+| `--stat` | Muestra estadísticas sobre los archivos modificados en cada confirmación. |
+| `--shortstat` | Muestra solamente la línea de resumen de la opción `--stat`. |
+| `--name-only` | Muestra la lista de archivos afectados. |
+| `--name-status` | Muestra la lista de archivos afectados, indicando además si fueron añadidos, modificados o eliminados. |
+| `--abbrev-commit` | Muestra solamente los primeros caracteres de la suma SHA-1, en vez de los 40 caracteres de que se compone. |
+| `--relative-date` | Muestra la fecha en formato relativo (por ejemplo, "2 weeks ago" ("hace 2 semanas")) en lugar del formato completo. |
+| `--graph` | Muestra un gráfico ASCII con la historia de ramificaciones y uniones. |
+| `--pretty` | Muestra las confirmaciones usando un formato alternativo. Posibles opciones son oneline, short, full, fuller y format (mediante el cual puedes especificar tu propio formato). |
+
+---
+
+## Limitar la Salida del Historial
+
+Ademas de formatear la salida, existen una seria de opciones para limitarla.
+Por ejemplo ya vimos la opcion `-2` que proviene de la opcion `-<n>` que limita la salida a `n` entradas.
+
+<br/>
+
+Las opciones temporales `--since` (desde) y `--until` (hasta) son muy utiles.
+Por ejemplo, este comando lista todas las confirmaciones hechas durante las ultimas 2 semanas:
+
+```bash
+git log --since=2.weeks
+```
+
+> Este comando acepta muchos formatos. Puedes indicar exactamente `"2008-01-15"` o de manera relativa como `"2 years 1 day 3 minutes ago"`
+
+### Opcion `-S`
+
+La ultima opcion realmente util para filtrar la salida de `git log` es `-S`,
+la cual recibe un _string_ y solo muestra confirmaciones que cambiaron el codigo añadiendo o eliminando el string indicado.
+Por ejemplo si queremos encontrar la ultima confirmacion que modifico una referencia a una funcion especifica, ejecutamos:
+
+```bash
+git log -Sfunction_name
+```
+
+---
+
+
+### Tabla de opciones para limitar la salida de `git log`
+
+| Opción | Descripción |
+| :--- | :--- |
+| `-(n)` | Muestra solamente las últimas n confirmaciones |
+| `--since`, `--after` | Muestra aquellas confirmaciones hechas después de la fecha especificada. |
+| `--until`, `--before` | Muestra aquellas confirmaciones hechas antes de la fecha especificada. |
+| `--author` | Muestra sólo aquellas confirmaciones cuyo autor coincide con la cadena especificada. |
+| `--committer` | Muestra sólo aquellas confirmaciones cuyo confirmador coincide con la cadena especificada. |
+| `-S` | Muestra sólo aquellas confirmaciones que añaden o eliminen código que corresponda con la cadena especificada. |
+
+---
+
+## Deshacer Cosas
+
+En cualquier momento puede que quieras deshacer algo.
+Una de las acciones mas comunes a deshacer es cuando confirmas un cambio antes de tiempo y olvidas agregar algun archivo,
+Si quieres rehacer la confirmacion, puedes reconfirmar con la opcion `--amend`.
+
+```bash
+git commit --amend
+```
+
+Este comando utiliza tu area de preparacion (_staging_) para la confirmacion.
+Si no has hecho cambios desde tu ultima confirmacion, entonces la instantanea (_snapshot_) lucira exactamente igual
+y lo unico que cambiaras sera el mensaje de confirmacion.
+
+<br/>
+
+Se lanzara el mismo editor de confirmacion, pero veras que ya incluye el mensaje de tu confirmacion anterior.
+Edita el mensaje y se sobreecribira tu confirmacion anterior.
+
+<br/>
+
+Por ejemplo, si confirmas y luego te das cuenta que olvidaste preparar los cambios de un archivo que querias incluir en esta confirmacion,
+puedes hacer lo siguiente:
+
+```bash
+git commit -m 'initial commit'
+git add forgotten_file
+git commit --amend
+```
+
+Al final terminaras con una sola confimarcion, la segunda confirmacion reemplaza el resultado de la primera.
+
+---
+
+## Deshacer un Archivo Preparado
+
+Supongamos que has cambiado 2 archivos y que quieres confirmarlos como dos cambios separados,
+pero accidentalmente has escrito `git add *` y has preparado ambos. ¿Como puedes sacar del area de preparacion uno de ellos?
+Veamos que dice `git status`:
+
+<Image
+    url="/git-workshop/02/out-git-status-ex-1.png"
+    alt="Output de git status (staged)"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+El propio `git status` te indica como hacerlo:
+
+```bash
+git restore --staged <archivo>
+```
+
+El archivo vuelve al estado _modified_ pero ya no esta preparado.
+
+---
+
+## Deshacer un Archivo Modificado
+
+¿Que pasa si te das cuenta que no quieres mantener los cambios del archivo `CONTRIBUTING.md`?
+¿Como puedes revertirlo facilmente a como estaba en la ultima confirmacion?
+`git status` tambien te lo indica:
+
+<Image
+    url="/git-workshop/02/out-git-status-ex-2.png"
+    alt="Output de git status (staged)"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+```bash
+git restore CONTRIBUTING.md
+```
+
+> **Importante:** `git restore <archivo>` es un comando destructivo. Cualquier cambio que hayas hecho al archivo
+> desaparecera — se sobreescribira con la ultima version confirmada. Nunca uses este comando a menos que estes
+> absolutamente seguro de que no quieres los cambios.
+
+
+---
+
+## Trabajar con Remotos
+
+Para colaborar necesitas saber como gestionar repositorios remotos.
+Un _remoto_ es una version de tu proyecto hospedada en internet o en otra red.
+
+### Ver remotos configurados
+
+```bash
+git remote       # lista los nombres
+git remote -v    # lista nombres + URLs
+```
+
+### Agregar un remoto
+
+```bash
+git remote add origin https://github.com/usuario/repo.git
+```
+
+<Image
+    url="/git-workshop/02/out-git-remote.png"
+    alt="Output de git remote"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-6xl my-4 mx-auto"
+/>
+
+---
+
+### Obtener datos de un remoto
+
+```bash
+git fetch origin   # descarga cambios sin integrarlos a tu rama
+git pull           # descarga + integra automaticamente (fetch + merge)
+```
+
+> La diferencia entre `fetch` y `pull` es importante: `fetch` solo descarga,
+> tu decides cuando integrar. `pull` lo hace automaticamente.
+
+### Enviar datos a un remoto
+
+```bash
+git push origin main
+```
+
+> Si alguien mas hizo push antes que tu, deberas integrar su trabajo primero con `git pull`.
+
+<br/>
+
+> **Nota:** En la clase 7 veremos remotos en profundidad: tracking branches,
+> `git remote rename`, `git remote remove`, `push --force-with-lease` y mas.
+
+---
+
+## Alias de Git
+
+Git no deduce automaticamente tu comando si lo tecleas parcialmente.
+Puedes establecer facilmente un alias para cada comando mediante `git config`.
+
+```bash
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.ci commit
+git config --global alias.st status
+```
+
+Esto significa que, por ejemplo, en lugar de teclear `git commit`, solo necesitas teclear `git ci`.
+
+### Alias utiles para el taller
+
+```bash
+# Ver el historial como grafo visual
+git config --global alias.lg "log --oneline --graph --all --decorate"
+
+# Ver el ultimo commit
+git config --global alias.last "log -1 HEAD"
+
+# Sacar del staging (version moderna)
+git config --global alias.unstage "restore --staged"
+```
+
+> Git simplemente sustituye el nuevo comando por lo que hayas puesto en el alias.
+> Usaremos `git lg` constantemente a partir de la clase 3 para visualizar el DAG.
+
+---
 
 ## Recursos
 

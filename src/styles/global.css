@@ -52,7 +52,7 @@ body {
 	@apply rounded border border-content/5 bg-content/10 px-1.5 py-0.5 font-mono text-sm text-primary/90;
 }
 .mdx-content pre {
-	@apply overflow-x-auto rounded border border-content/10 bg-content/5 p-4 text-sm;
+	@apply overflow-x-auto rounded border border-content/10 bg-content/5 p-4 text-sm my-4;
 }
 .mdx-content pre code {
 	@apply border-0 bg-transparent p-0 text-content/90;
@@ -81,4 +81,32 @@ body {
 }
 .mdx-content hr {
 	@apply my-8 border-content/10;
+}
+
+/* --------------------------- TABLAS MDX --------------------------- */
+.mdx-content table {
+    @apply w-full table-auto border-collapse text-left text-sm m-0
+}
+
+.mdx-content th {
+    @apply border-b border-content/20 px-4 py-2 font-mono font-bold text-primary uppercase tracking-wider;
+}
+
+.mdx-content td {
+    @apply border-b border-content/10 px-4 py-2 text-content/80 align-middle;
+}
+
+/* Efecto cebra para las filas */
+.mdx-content tr:nth-child(even) {
+    @apply bg-content/[0.02];
+}
+
+/* Efecto hover sutil al pasar el mouse por las filas */
+.mdx-content tr:hover td {
+    @apply bg-content/[0.04] text-content transition-colors;
+}
+
+/* Ajuste específico para que los códigos dentro de la tabla resalten bien */
+.mdx-content td code {
+    @apply font-bold bg-content/15;
 }
