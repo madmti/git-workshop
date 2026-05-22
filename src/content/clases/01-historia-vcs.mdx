@@ -1,5 +1,5 @@
 ---
-title: "Historia de VCS + Fundamentos Git"
+title: "Introduccion a VCS + Fundamentos Git"
 description: "Evolución de los sistemas de control de versiones y la filosofía detrás de Git"
 clase: 1
 duracion: "1.5h"
@@ -11,10 +11,19 @@ draft: false
 ---
 
 import ImageSet from 'MDX/ImageSet.astro';
+import Image from 'MDX/Image.astro';
+import SideImage from 'MDX/SideImage.astro';
+import FullTitle from 'MDX/FullTitle.astro';
+
+<FullTitle>
+    Introduccion a **VCS**
+</FullTitle>
+
+---
 
 ## Sistemas de Control de Versiones (VCS)
 
-Un sistema de control de versiones es una herramienta que registra los cambios realizados en un archivo o conjunto de archivos a lo largo del tiempo,
+Un _sistema de control de versiones_ es una herramienta que registra los **cambios realizados en un archivo o conjunto de archivos a lo largo del tiempo**,
 permitiendo recuperar versiones especificas mas adelante.
 
 <ImageSet
@@ -33,6 +42,326 @@ permitiendo recuperar versiones especificas mas adelante.
 
 ### Tipos de Control de Versiones
 
-- **Local**
+- **Local (LVCS)**
 - **Centralizado (CVCS)**
 - **Distribuido (DVCS)**
+
+### Ejemplo
+
+Si eres diseñador gráfico o de web y quieres mantener cada versión de una imagen o diseño,
+usar un sistema de control de versiones es una decisión muy acertada.
+Dicho sistema te permite regresar a versiones anteriores de tus archivos, regresar a una versión anterior del proyecto completo,
+comparar cambios a lo largo del tiempo, ver quién modificó por última vez algo que pueda estar causando problemas,
+ver quién introdujo un problema y cuándo, y mucho más. Usar un VCS también significa generalmente que si arruinas o pierdes archivos,
+será posible recuperarlos fácilmente. Adicionalmente, obtendrás todos estos beneficios a un costo muy bajo.
+
+---
+
+<SideImage
+    url="/git-workshop/01/LVCS.png"
+    alt="Diagrama de un sistema de control de versiones local"
+    side="right"
+    fit="contain"
+    aspect="square"
+    imageTw="max-w-lg my-4"
+>
+    ## Sistemas de Control de Versiones Locales
+    ### Problema
+    Un metodo de control de versiones, usado por muchas personas, es copiar archivos a otro directorio.
+    Pero es facil olvidar en que directorio te encuentras y **guardar accidentalmente en el archivo equivocado o sobreescribir archivos que no querias**.
+    ### Solucion
+    Los _LVCS_ contenian una simple base de datos, en la que se llevaba el **registro de todos los cambios realizados a los archivos**.
+    Una de las herramientas de control de versiones mas popular fue un sistema llamado _RCS_, que todavia podemos encontrar en muchas de las
+    computadoras actuales.
+</SideImage>
+
+---
+
+<SideImage
+    url="/git-workshop/01/CVCS.png"
+    alt="Diagrama de un sistema de control de versiones centralizado"
+    side="right"
+    fit="contain"
+    aspect="square"
+    imageTw="max-w-lg my-4"
+>
+    ## Sistemas de Control de Versiones Centralizados
+    ### Problema
+    El siguiente gran problema con el que se encuentran las personas es que necesitan **colaborar con desarrolladores en otros sistemas**.
+    ### Solucion
+    Los _CVCS_ fueron desarrollados para implementar la colaboracion. Estos sistemas tienen un **unico servidor** que contiene todos los archivos
+    versionados y **varios clientes** que descargan los archivos desde ese lugar central. Este ha sido el estandar para el control de versiones por muchos años.
+</SideImage>
+
+---
+
+<SideImage
+    url="/git-workshop/01/DVCS.png"
+    alt="Diagrama de un sistema de control de versiones distribuido"
+    side="right"
+    fit="contain"
+    aspect="square"
+    imageTw="max-w-lg my-4"
+>
+    ## Sistemas de Control de Versiones Distribuido
+    ### Problema
+    Usar un _CVCS_ tiene serias desventajas. La mas obvia es el **punto unico de fallo que representa el servidor central**. Si el servidor se cae,
+    nadie podra colaborar o guardar cambios. Si el disco duro del servidor central se corrompe, se perdera toda la informacion del proyecto.
+    ### Solucion
+    En un _DCVS_ los clientes no solo descargan la ultima copia instantanea de los archivos, sino que se **replica completamente el repositorio**.
+    De esta manera, si un servidor deja de funcionar y estos sistemas estaban colaborando a traves de el,
+    cualquiera de los repositorios disponibles en los clientes puede ser copiado al servidor con el fin de restaurarlo.
+</SideImage>
+
+---
+
+## Historia de Git Resumida
+
+Como muchas de las grandes cosas en esta vida, Git comenzó con un poco de destrucción creativa y una gran polémica.
+
+<br/>
+
+El kernel de Linux es un proyecto de software de código abierto con un alcance bastante amplio.
+Durante la mayor parte del mantenimiento del kernel de Linux (1991-2002), los cambios en el software se realizaban a través de parches y archivos.
+En el 2002, el proyecto del kernel de Linux empezó a usar un _DVCS_ propietario llamado BitKeeper.
+
+<br/>
+
+En el 2005, la relación entre la comunidad que desarrollaba el kernel de Linux y la compañía que desarrollaba BitKeeper se vino abajo y la herramienta dejó de ser ofrecida de manera gratuita.
+Esto impulsó a la comunidad de desarrollo de Linux (y en particular a Linus Torvalds, el creador de Linux) a desarrollar su propia herramienta basada en algunas de las lecciones que aprendieron mientras usaban BitKeeper.
+Algunos de los objetivos del nuevo sistema fueron los siguientes:
+
+- **Velocidad**
+- **Diseño sencillo**
+- **Gran soporte para desarrollo no lineal (miles de ramas paralelas)**
+- **Completamente distribuido**
+- **Capaz de manejar grandes proyectos (como el kernel de Linux) eficientemente**
+
+<br/>
+
+Desde su nacimiento en el 2005, Git ha evolucionado y madurado para ser fácil de usar y conservar sus características iniciales.
+Es tremendamente rápido, muy eficiente con grandes proyectos y tiene un increíble sistema de ramificación para desarrollo no lineal
+
+---
+
+<FullTitle>
+    Fundamentos de **Git**
+</FullTitle>
+
+---
+
+## ¿Que es Git?
+
+Git almacena y maneja la informacion de forma muy diferente a los otros _VCSs_, a pesar de que su interfaz es bastante similar.
+Comprender lo que diferencia a git es fundamental para no confundirse a la hora de usarlo.
+
+## Copias instantaneas, no diferencias
+
+La principal diferencia entre _Git_ y cualquier otro _VCS_ es la forma en la que manejan sus datos.
+Conceptualmente, la mayoria de los otros sitemas almacenan la informacion como una lista de cambios en los archivos (_deltas_).
+Estos sistemas manejan la informacion que almacenan como un conjunto de archivos y las modificaciones hechas a cada uno de ellos a traves del tiempo.
+
+<br/>
+
+_Git_ no maneja ni almacena diferencias (_deltas_), en su lugar almacena un conjunto de copias instantaneas (_snapshots_)
+de un sistema de archivos miniatura. Cada vez que confirmas un cambio, o guardas el estado de tu proyecto en _Git_, se toma una foto
+del aspecto de todos tus archivos en ese momento y guarda una referencia a esa _spanshot_. Si el archivo no se modifico desde la ultima version,
+_Git_ guarda un enlace al archivo anterior identico que ya tiene almacenado (una referencia que ocupa poca memoria).
+
+---
+
+## Deltas vs Snapshots
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 items-center justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Diagrama Deltas', url: '/git-workshop/01/deltas.png' },
+		{ alt: 'Diagrama Snapshots', url: '/git-workshop/01/snapshots.png' },
+	]}
+/>
+
+---
+
+## Ventajas de _Git_
+
+### 1. Casi todas las operaciones son locales
+
+La mayoria de las operaciones en _Git_ solo necesitan archivos y recursos locales para funcionar.
+Por lo general no se necesita informacion de ningun otro computador de tu red. (En un _CVCS_ se podrian experimentar retrasos en los comandos, ya que necesitan viajar por la red)
+
+### 2. Git tiene integridad
+
+Todo en _Git_ es verificado mediante suma de comprobacion (_checksum_) antes de ser almacenado,
+esto hace que no puedas perder informaicon durante la transmision o sufrir corrupcion de archivos sin que _Git_ sea capaz de detectarlo.
+El mecanismo que usa _Git_ para el _checksum_ se conoce como _hash SHA-1_ y se ve algo asi:
+
+<span class="flex justify-center my-4">`24b9da6552252987aa493b52f8696cd6d3b00373`</span>
+
+Ver estos valores hash en todos lados en _Git_ es muy comun. De hecho, _Git_ no guarda todo por nombre de archivo, sino por el valor hash de sus contenidos.
+
+### 3. Git generalmente solo añade informacion
+
+Cuando realizas acciones en _Git_, casi todas ellas solo añaden informacion a la base de datos de _Git_. Es muy dificil conseguir que el sistema haga algo que no se pueda enmendar/revertir,
+o que de algun modo borre informacion.
+
+Gracias a esto podemos experimentar sin el peligro de estropear gravemente las cosas en nuestro proyecto.
+
+---
+
+## Los 3 estados (_¡Muy importante!_)
+
+_Git_ tiene 3 estados principales en los que se pueden encontrar tus archivos:
+
+- **committed**: Confirmado, significa que los datos estan almacenados de manera segura en la base de datos local.
+- **modified**: Modificado, significa que has modificado el archivo pero todavia no lo has confirmado en tu base de datos.
+- **staged**: Preparado, significa que has marcado un archivo modificado en su version actual para que vaya en tu proxima confirmacion.
+
+<br/>
+
+Esto nos lleva a las 3 secciones/areas principales de un proyecto de _Git_:
+
+- **Git Directory**: El directorio de git o Repositorio, es la carpeta `.git/`.
+- **Working Directory**: El directorio de trabajo, donde esta nuestro proyecto.
+- **Staging Area**: El area de preparacion, donde selecionaremos que archivos incluir en nuestra confirmacion.
+
+---
+
+## Las 3 areas
+El directorio de _Git_ es donde se almacenan los metadatos y la base de datos de objetos para tu proyecto.
+Es la parte mas importante de _Git_, y es lo que se copia cuando clonas un repositorio desde otra computadora.
+
+<br/>
+
+El directorio de trabajo es una copia de una version del proyecto.
+Estos archivos se sacan de la base de datos comprimida en el directorio de _Git_.
+
+<br/>
+
+El area de preparacion es un archivo, generalmente contenido en tu directorio de _Git_ (`.git/`),
+que almacena informacion de que es lo que va a ir en tu proxima confirmacion.
+
+<Image
+    url="/git-workshop/01/areas.png"
+    alt="Diagrama de areas de git"
+    fit="contain"
+    aspect="wide"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+{/*
+El flujo de trabajo básico en Git es algo así:
+
+1. Modificas una serie de archivos en tu directorio de trabajo.
+2. Preparas los archivos, añadiéndolos a tu área de preparación.
+3. Confirmas los cambios, lo que toma los archivos tal y como están en el área de preparación y almacena esa copia instantánea de manera permanente en tu directorio de Git.
+
+Si una versión concreta de un archivo está en el directorio de Git, se considera confirmada (committed).
+Si ha sufrido cambios desde que se obtuvo del repositorio, pero ha sido añadida al área de preparación, está preparada (staged).
+Y si ha sufrido cambios desde que se obtuvo del repositorio, pero no se ha preparado, está modificada (modified).
+*/}
+
+---
+
+## Instalar _Git_
+
+No lo veremos en detalle, ya que las guias son bastante simples. Ver [links de instalacion](https://git-scm.com/install/).
+
+---
+
+## Configuracion de _Git_
+
+Este proceso es necesario solamente una vez en tu computadora.
+Luego la configuracion se mantendra entre actualizaciones,
+tambien se pueden cambiar en cualquier momento ejecutando los comandos correspondientes.
+
+<br/>
+
+_Git_ trae una herramienta llamada `git config`, que te permite obtener y establecer variables de configuracion
+que controlan el aspecto y funcionamiento de _Git_. Estas variables pueden almacenarse en 3 sitios distintos:
+
+- `/etc/gitconfig`: Contiene valores para todos los usuarios del sistema y todos sus repositorios. Si pasas la opcion `--system`, el comando lee y escribe especificamente este archivo.
+- `~/.gitconfig` o `~/.config/git/config`: Este archivo es especifico de tu usuario. Puedes hacer que _Git_ lea y escriba especificamente este archivo usando la opcion `--global`.
+- `.git/config`: Este archivo es especifico del repositorio actual, es el valor por defecto si no pasas ninguna opcion.
+
+<br/>
+
+> Cada nivel sobre-escribe los valores del nivel anterior, por lo que los valores de `.git/config` tiene preferencia por sobre los de `/etc/gitconfig`
+
+---
+
+## Tu Identidad
+
+Lo primero que deberas hacer cuando instales _Git_ es establecer tu nombre de usuario y direccion de correo.
+Esto es importante porque los _commits_ usan esta informacion, y es introducida de manera inmutable en los commits que envias.
+
+<span class="flex justify-center my-4">
+    `$ git config --global user.name "Jhon Doe"`
+</span>
+<span class="flex justify-center my-4">
+    `$ git config --global user.email johndoe@example.com`
+</span>
+
+## Tu editor
+
+Puedes elegir el editor de texto por defecto que se utilizara cuando _Git_ necesite que introduzcas un mensaje.
+Si no indicas nada, _Git_ ysara el editor por defecto de tu sistema, que generalmente en Vim.
+
+<span class="flex justify-center my-4">
+    `$ git config --global core.editor code`
+</span>
+
+---
+
+## Comprobar configuracion
+
+Puedes usar el comando `git config --list` para mostrar todas las propiedades que _Git_ ha configurado:
+
+<Image
+    url="/git-workshop/01/out-git-config.png"
+    alt="Output de git config --list"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-5xl my-4 mx-auto"
+/>
+
+Tambien puedes comprobar el valor que _Git_ utilizara para una clave especifica ejecutando `git config <key>`:
+
+<Image
+    url="/git-workshop/01/out-git-config-key.png"
+    alt="Output de git config user.name"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-5xl my-4 mx-auto"
+/>
+
+---
+
+## ¿Como obtener ayuda?
+
+Si alguna vez necesitas ayuda usando _Git_, existen 3 formas de ver la pagina del manual (_manpage_) para cualquier comando de _Git_:
+
+- `git help <verb>`
+- `git <verb> --help`
+- `man git-<verb>`
+
+<br/>
+
+Por ejemplo, puedes ver la pagina del manual para el comando config ejecutando `git help config`.
+
+<Image
+    url="/git-workshop/01/out-git-help.png"
+    alt="Output de git help config"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-5xl my-4 mx-auto"
+/>
+
+---
+
+## Recursos
+
+- [Pro Git - Cap. 1]("https://git-scm.com/book/en/v2/Getting-Started-About-Version-Control"): Desde `1.1` a `1.7` (todo el capitulo 1)

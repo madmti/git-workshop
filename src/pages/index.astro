@@ -11,11 +11,19 @@ const clases = (await getCollection('clases')).sort((a, b) => a.data.clase - b.d
 		<div class="mx-auto mb-8 flex max-w-6xl items-center justify-end">
 			<div class="flex items-center gap-2 text-xs tracking-widest text-content/60 uppercase">
 				<span class="text-content/50">Theme</span>
-				<button data-theme="dark" type="button" class="theme-option cursor-pointer tracking-wide uppercase">
+				<button
+					data-theme="dark"
+					type="button"
+					class="theme-option cursor-pointer tracking-wide uppercase"
+				>
 					Dark
 				</button>
 				<span class="pointer-events-none text-content/50">|</span>
-				<button data-theme="light" type="button" class="theme-option cursor-pointer tracking-wide uppercase">
+				<button
+					data-theme="light"
+					type="button"
+					class="theme-option cursor-pointer tracking-wide uppercase"
+				>
 					Light
 				</button>
 			</div>

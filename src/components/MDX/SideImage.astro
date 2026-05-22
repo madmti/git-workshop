@@ -1,0 +1,40 @@
+---
+import Image from './Image.astro';
+
+interface Props {
+	alt: string;
+	url: string;
+	side?: 'left' | 'right';
+	aspect?: 'square' | 'wide' | 'auto' | 'stretch';
+	fit?: 'cover' | 'contain';
+	containerTw?: string;
+	contentTw?: string;
+	imageTw?: string;
+}
+
+const {
+	alt,
+	url,
+	side = 'right',
+	aspect = 'square',
+	fit = 'contain',
+	containerTw = '',
+	contentTw = '',
+	imageTw = ''
+} = Astro.props;
+
+const isImageLeft = side === 'left';
+const imageOrderClass = isImageLeft ? 'md:order-1' : 'md:order-2';
+const contentOrderClass = isImageLeft ? 'md:order-2' : 'md:order-1';
+---
+
+<div class={`grid grid-cols-1 gap-4 md:grid-cols-2 ${containerTw}`}>
+	<div class={contentOrderClass}>
+		<div class={contentTw}>
+			<slot />
+		</div>
+	</div>
+	<div class={imageOrderClass}>
+		<Image url={url} alt={alt} fit={fit} aspect={aspect} position="center" tw={imageTw} />
+	</div>
+</div>

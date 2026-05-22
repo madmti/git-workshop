@@ -14,7 +14,7 @@ const clases = defineCollection({
 			.array(
 				z.object({
 					titulo: z.string(),
-					url: z.url(),
+					url: z.url()
 				})
 			)
 			.optional(),

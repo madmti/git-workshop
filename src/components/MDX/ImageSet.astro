@@ -48,14 +48,16 @@ const layoutClass = {
 ---
 
 <div class={`${layoutClass} ${containerTw}`}>
-	{images.map((image) => (
-		<Image
-			alt={image.alt}
-			url={image.url}
-			position={position}
-			aspect={aspect}
-			fit={fit}
-			tw={`${imageTw} ${image.tw ?? ''}`.trim()}
-		/>
-	))}
+	{
+		images.map((image) => (
+			<Image
+				alt={image.alt}
+				url={image.url}
+				position={position}
+				aspect={aspect}
+				fit={fit}
+				tw={`${imageTw} ${image.tw ?? ''}`.trim()}
+			/>
+		))
+	}
 </div>

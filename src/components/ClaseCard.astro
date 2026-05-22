@@ -1,61 +1,60 @@
 ---
 interface Props {
-  clase: number
-  title: string
-  description: string
-  duracion: string
-  dificultad: 'facil' | 'media' | 'dificil'
-  draft: boolean
-  slug: string
+	clase: number;
+	title: string;
+	description: string;
+	duracion: string;
+	dificultad: 'facil' | 'media' | 'dificil';
+	draft: boolean;
+	slug: string;
 }
 
-const { clase, title, description, duracion, dificultad, draft, slug } = Astro.props
+const { clase, title, description, duracion, dificultad, draft, slug } = Astro.props;
 
 const dificultadColor = {
-  facil: 'text-green-400',
-  media: 'text-yellow-400',
-  dificil: 'text-red-400',
-}[dificultad]
-
+	facil: 'text-green-400',
+	media: 'text-yellow-400',
+	dificil: 'text-red-400'
+}[dificultad];
 ---
 
-{draft ? (
-  <!-- Tarjeta deshabilitada: no es un enlace, cursor not-allowed -->
-  <div
-    class="flex flex-col gap-3 rounded border border-content/10 bg-content/5 p-6 opacity-40 cursor-not-allowed select-none"
-    aria-disabled="true"
-  >
-    <div class="flex items-center justify-between">
-      <span class="text-xs font-mono text-content/40 uppercase tracking-widest">
-        Clase {String(clase).padStart(2, '0')}
-      </span>
-      <span class="text-xs font-mono text-content/30 uppercase tracking-widest">
-        [ DRAFT ]
-      </span>
-    </div>
-    <h2 class="text-lg font-bold text-content/50">{title}</h2>
-    <p class="text-sm text-content/40 leading-6">{description}</p>
-    <div class="flex gap-4 mt-2">
-      <span class="text-xs font-mono text-content/30">{duracion}</span>
-      <span class={`text-xs font-mono ${dificultadColor} opacity-50`}>{dificultad}</span>
-    </div>
-  </div>
-) : (
-  <!-- Tarjeta activa: es un enlace real -->
-  <a
-    href={`${import.meta.env.BASE_URL}clases/${slug}/`}
-    class="group flex flex-col gap-3 rounded border border-content/10 bg-content/5 p-6 transition-colors hover:border-primary/40 hover:bg-primary/5"
-  >
-    <div class="flex items-center justify-between">
-      <span class="text-xs font-mono text-content/40 uppercase tracking-widest">
-        Clase {String(clase).padStart(2, '0')}
-      </span>
-    </div>
-    <h2 class="text-lg font-bold text-content group-hover:text-primary transition-colors">{title}</h2>
-    <p class="text-sm text-content/60 leading-6">{description}</p>
-    <div class="flex gap-4 mt-2">
-      <span class="text-xs font-mono text-content/40">{duracion}</span>
-      <span class={`text-xs font-mono ${dificultadColor}`}>{dificultad}</span>
-    </div>
-  </a>
-)}
+{
+	draft ? (
+		<div
+			class="flex cursor-not-allowed flex-col gap-3 rounded border border-content/10 bg-content/5 p-6 opacity-40 select-none"
+			aria-disabled="true"
+		>
+			<div class="flex items-center justify-between">
+				<span class="font-mono text-xs tracking-widest text-content/40 uppercase">
+					Clase {String(clase).padStart(2, '0')}
+				</span>
+				<span class="font-mono text-xs tracking-widest text-content/30 uppercase">[ DRAFT ]</span>
+			</div>
+			<h2 class="text-lg font-bold text-content/50">{title}</h2>
+			<p class="text-sm leading-6 text-content/40">{description}</p>
+			<div class="mt-2 flex gap-4">
+				<span class="font-mono text-xs text-content/30">{duracion}</span>
+				<span class={`font-mono text-xs ${dificultadColor} opacity-50`}>{dificultad}</span>
+			</div>
+		</div>
+	) : (
+		<a
+			href={`${import.meta.env.BASE_URL}clases/${slug}/`}
+			class="group flex flex-col gap-3 rounded border border-content/10 bg-content/5 p-6 transition-colors hover:border-primary/40 hover:bg-primary/5"
+		>
+			<div class="flex items-center justify-between">
+				<span class="font-mono text-xs tracking-widest text-content/40 uppercase">
+					Clase {String(clase).padStart(2, '0')}
+				</span>
+			</div>
+			<h2 class="text-lg font-bold text-content transition-colors group-hover:text-primary">
+				{title}
+			</h2>
+			<p class="text-sm leading-6 text-content/60">{description}</p>
+			<div class="mt-2 flex gap-4">
+				<span class="font-mono text-xs text-content/40">{duracion}</span>
+				<span class={`font-mono text-xs ${dificultadColor}`}>{dificultad}</span>
+			</div>
+		</a>
+	)
+}

@@ -80,43 +80,5 @@ body {
 	@apply border-l-2 border-primary/60 pl-4 text-content/70 italic;
 }
 .mdx-content hr {
-  @apply my-8 border-content/10;
-}
-
-/* --------------------------- Slides --------------------------- */
-[data-slides-controls] {
-  display: none;
-}
-
-.slides-scroll {
-  overflow: hidden;
-}
-
-.slides-mode [data-slides-controls] {
-  display: flex;
-}
-
-.slides-mode .slides-container {
-  position: relative;
-  min-height: 70vh;
-}
-
-.slides-mode .slide {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 150ms ease;
-  padding: 2.5rem 0;
-}
-
-.slides-mode .slide.is-active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-@media (max-width: 640px) {
-  .slides-mode .slide {
-    padding: 2rem 0;
-  }
+	@apply my-8 border-content/10;
 }

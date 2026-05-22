@@ -17,9 +17,9 @@ const { Content } = await render(entry);
 <Layout>
 	<div class="flex h-screen flex-col overflow-hidden">
 		<!-- Header -->
-		<header class="shrink-0 border-b border-content/10 px-12 py-10 max-sm:px-6">
+		<header id="page-header" class="shrink-0 border-b border-content/10 px-12 py-10 max-sm:px-6">
 			<div class="mx-auto max-w-6xl">
-				<div class="mx-auto mb-8 flex max-w-6xl items-center justify-between">
+				<div class="header-top mx-auto mb-8 flex max-w-6xl items-center justify-between">
 					<a
 						href={import.meta.env.BASE_URL}
 						class="inline-block font-mono text-xs tracking-widest text-content/40 uppercase transition-colors hover:text-primary"
@@ -69,12 +69,19 @@ const { Content } = await render(entry);
 							>
 								Slides
 							</button>
+							<button
+								id="btn-compact"
+								type="button"
+								class="cursor-pointer rounded border px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors"
+							>
+								Compact
+							</button>
 						</div>
 					</div>
 				</div>
 
 				<!-- Metadata -->
-				<div class="mt-3 flex flex-wrap gap-5">
+				<div class="header-meta mt-3 flex flex-wrap gap-5">
 					<span class="font-mono text-xs text-content/40">{entry.data.duracion}</span>
 					<span class="font-mono text-xs text-content/40">{entry.data.dificultad}</span>
 				</div>
@@ -82,7 +89,7 @@ const { Content } = await render(entry);
 				<!-- Recursos -->
 				{
 					entry.data.recursos && entry.data.recursos.length > 0 && (
-						<div class="mt-3 flex flex-wrap gap-2">
+						<div class="header-resources mt-3 flex flex-wrap gap-2">
 							{entry.data.recursos.map((r: { url: string; titulo: string }) => (
 								<a
 									href={r.url}
@@ -102,7 +109,7 @@ const { Content } = await render(entry);
 		<!-- Área de contenido — ocupa todo el espacio restante -->
 		<div class="relative min-h-0 flex-1">
 			<!-- MODO DOC: scroll normal -->
-			<div id="mode-doc" class="mx-auto h-full max-w-6xl overflow-y-auto py-6 max-sm:px-6">
+			<div id="mode-doc" class="mx-auto h-full max-w-6xl overflow-y-auto py-6 pb-64 max-sm:px-6">
 				<div class="mdx-content">
 					<Content />
 				</div>
@@ -115,7 +122,7 @@ const { Content } = await render(entry);
 					id="slides-viewport"
 					class="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-y-auto py-6 max-sm:px-6"
 				>
-					<div id="slides-content" class="mdx-content">
+					<div id="slides-content" class="mdx-content h-full">
 						<!-- Contenido del slide actual se inyecta aquí por JS -->
 					</div>
 				</div>
@@ -369,6 +376,68 @@ const { Content } = await render(entry);
 		// Leer modo desde query param (?mode=slides), default doc
 		const initialMode = getModeFromUrl() === 'slides' ? 'slides' : 'doc';
 		setMode(initialMode);
+	})();
+</script>
+
+<style is:inline>
+	#page-header[data-compact='true'] {
+		padding-top: 1rem;
+		padding-bottom: 1rem;
+	}
+
+	#page-header[data-compact='true'] .header-meta,
+	#page-header[data-compact='true'] .header-resources {
+		display: none;
+	}
+
+	#page-header[data-compact='true'] h1 {
+		font-size: 1.5rem;
+		line-height: 2rem;
+	}
+
+	#page-header[data-compact='true'] .header-top {
+		margin-bottom: 0.75rem;
+	}
+
+	body.header-compact #mode-slides #slides-viewport {
+		display: flex;
+		align-items: center;
+	}
+
+	body.header-compact #mode-slides #slides-content {
+		width: 100%;
+	}
+</style>
+
+<script is:inline>
+	(() => {
+		const header = document.getElementById('page-header');
+		const btnCompact = document.getElementById('btn-compact');
+		const body = document.body;
+		const slidesContent = document.getElementById('slides-content');
+
+		if (!header || !btnCompact) return;
+
+		const STORAGE_KEY = 'header-compact';
+
+		const applyCompact = (isCompact) => {
+			header.setAttribute('data-compact', isCompact ? 'true' : 'false');
+			body.classList.toggle('header-compact', isCompact);
+			if (slidesContent) slidesContent.classList.toggle('h-full', !isCompact);
+			btnCompact.classList.toggle('border-primary', isCompact);
+			btnCompact.classList.toggle('text-primary', isCompact);
+			btnCompact.classList.toggle('border-content/10', !isCompact);
+			btnCompact.classList.toggle('text-content/40', !isCompact);
+		};
+
+		const saved = localStorage.getItem(STORAGE_KEY) === 'true';
+		applyCompact(saved);
+
+		btnCompact.addEventListener('click', () => {
+			const next = header.getAttribute('data-compact') !== 'true';
+			applyCompact(next);
+			localStorage.setItem(STORAGE_KEY, String(next));
+		});
 	})();
 </script>
 
