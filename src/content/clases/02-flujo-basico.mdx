@@ -1,5 +1,5 @@
 ---
-title: "Setup + Flujo básico local"
+title: "Flujo basico de Git"
 description: "Configuración inicial y el ciclo add => commit => log en la práctica"
 clase: 2
 duracion: "2h"
@@ -7,9 +7,376 @@ dificultad: facil
 recursos:
   - titulo: "Pro Git — Cap. 2"
     url: "https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository"
-draft: true
+draft: false
 ---
 
-## Setup inicial
+import ImageSet from 'MDX/ImageSet.astro';
+import Image from 'MDX/Image.astro';
+import SideImage from 'MDX/SideImage.astro';
+import FullTitle from 'MDX/FullTitle.astro';
 
-Contenido pendiente...
+<FullTitle>
+    Fundamentos de **Git** (parte 2)
+</FullTitle>
+
+---
+
+## Obtener un repositorio _Git_
+
+Puedes obtener un proyecto _Git_ de 2 maneras.
+La primera es tomar un proyecto o directorio existente e inicializarlo con _Git_.
+La segunda es clonar un repositorio existente en _Git_ desde otro servidor.
+
+---
+
+### Inicializar un directorio existente
+
+```bash
+git init
+```
+
+<br/>
+
+Esto crea un subdirectorio `.git/`, el cual contiene todos los archivos necesarios del repositorio.
+Todavia no hay nada en tu proyecto que este bajo seguimiento.
+
+Para empezar a controlar versiones de archivos existentes, tenemos que comenzar el seguimiento de esos archivos y hace una confirmacion inicial.
+Esto se consigue con unos pocos comandos `git add` para especificar que archivos queremos controlar, seguidos de un `git commit` para confirmar los cambios:
+
+<br/>
+
+```bash
+git add *.c
+git add LICENSE
+git commit -m 'initial project version'
+```
+
+<br/>
+
+Veremos lo que hacen estos comandos mas adelante. Por ahora, tenemos un repositorio de _Git_ con archivos bajo seguimiento y una confirmacion inicial.
+
+---
+
+### Clonando un repositorio existente
+
+Para obtener una copia de un repositorio _Git_ existente, el comando que necesitas es `git clone`.
+Al ejecutar el comando, cada version de cada archivo de la historia del proyecto es descargada por defecto.
+De hecho, si el disco de tu servidor se corrompe, puedes usar cualquiera de los clones en cualquiera de los clientes para devolver el servidor
+al estado en el que estaba cuando fue clonado.
+
+<br/>
+
+Podemos clonar un repositorio con `git clone [url]`.
+Por ejemplo si quisieramos clonar la libreria de _Git_ llamada `libgit2` podemos hacer algo asi:
+
+<br/>
+
+```bash
+git clone https://github.com/libgit2/libgit2
+```
+
+<br/>
+
+Esto crea un directorio llamado `libgit2/`, inicializa un directorio `.git/` en su interior, descarga toda la informacion de ese repositorio y saca una copia de trabajo de la ultima version.
+
+Si quisieramos clonarlo con otro nombre que no sea `libgit2`, podemos especificarlo asi:
+
+<br/>
+
+```bash
+git clone https://github.com/libgit2/libgit2 nombre
+```
+
+---
+
+## Guardar cambios en el repositorio
+
+Ya tenemos un repositorio _Git_ y un _checkout_ o copia de trabajo de los archivos de dicho proyecto.
+El siguiente paso es realizar algunos cambios y confirmar instantaneas (_snapshots_) de esos cambios en el repositorio
+cada vez que el proyecto alcance un estado que queramos conservar.
+
+### Estado de los archivos
+
+Recordemos que los archivos **que tienen seguimiento** en _Git_ pueden tener 3 estados: _committed (Confirmado)_, _modified (Modificado)_ y _staged (Preparado)_.
+
+<br/>
+
+Ademas de archivos con seguimiento podemos tener archivos que son nuevos para _Git_ y que no tienen seguimiento, aqui es donde se dividen en 2 estados mas:
+
+- **tracked**: Rastreado, son todos aquellos archivos que estaban en la ultima _snapshot_ del proyecto, pueden ser archivos sin modificar, modificados o preparados.
+- **untracked**: Sin rastrear, son todos los demas archivos que _Git_ no ha considerado en _snapshots_ anteriores.
+
+<br/>
+
+> Cuando clonas por primera vez un repositorio, todos los archivos van a estar rastreados (_tracked_) y sin modificar (_unmodified_).
+
+---
+
+## Ciclo de vida de los archivos
+
+Mientras editas archivos, _Git_ los ve como modificados, porque fueron cambiados desde su ultimo _commit_.
+Luego preparas estos archivos modificados y finalmente confirmas todos los cambios preparados, y repites el ciclo.
+
+<Image
+    url="/git-workshop/02/lifecycle.png"
+    alt="Ciclo de vida de los archivos en Git"
+    fit="contain"
+    aspect="wide"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+> Aqui _Unmodified_ y _Modified_ son archivos rasteados (_tracked_)
+
+---
+
+## Revisar el estado de los archivos
+
+La herramienta principal para determinar que archivos estan en que estado es el comando `git status`.
+Si ejecutas este comando inmediatamente despues de clonar un repositorio, deberias ver algo como esto:
+
+<Image
+    url="/git-workshop/02/out-git-status.png"
+    alt="Output de git status"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+Esto significa que tienes un directorio de trabajo limpio, osea que no hay archivos rastreados y modificados.
+Ademas, _Git_ no encuentra archivos sin rastrear, de lo contrario aparecerian listados ahi.
+Finalmente, el comando te indica en cual rama estas y te informa que no ha variado respecto a la misma rama en el servidor.
+
+<br/>
+
+Supongamos que añades un nuevo archivo a tu proyecto, un simple `README`.
+Si el archivo no existia antes y ejecutar `git status`, veras el archivo sin rastrear de la siguiente manera:
+
+<Image
+    url="/git-workshop/02/out-git-status-untracked.png"
+    alt="Output de git status (untracked)"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+> Git no incluira en tu proximo _commit_ a los archivos sin rastrear a menos que se lo indiques explicitamente.
+
+---
+
+## Rastrear Archivos Nuevos
+
+Para comenzar a rastrear un archivo debes usar el commando `git add`. Para comenzar a rastrar el archivo `README`, puede ejecutar lo siguiente:
+
+<br/>
+
+```bash
+git add README
+```
+
+<br/>
+
+Ahora si vuelves a ver el estado del proyecto, veras que el archivo `README` esta siendo rastreado y esta preparado para ser confirmado:
+
+<Image
+    url="/git-workshop/02/out-git-status-tracked.png"
+    alt="Output de git status (tracked)"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+Si confirmamos en este punto, se guardara en el historial la version del archivo correspondiente al instante en que ejecutaste `git add`.
+Anteriormente cuando ejecutaste `git init`, ejecutaste luego `git add [files]`, lo cual indico el rastreo de archivos en tu directorio.
+El comando `git add` puede recibir tanto una ruta de archivo como de un directorio. Si es un directorio, el comando añade recursivamente los archivos que estan dentro de el.
+
+---
+
+## Preparar Archivos Modificados
+
+Vamos a cambiar un archivo que este rastreado. Si cambias el archivo rastrado `CONTRIBUTING.md` y luego ejecutas el commando `git status`, veras algo como esto:
+
+<Image
+    url="/git-workshop/02/out-git-status-modified.png"
+    alt="Output de git status (modified)"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+La cabecera "Changes not staged for commit", significa que existe un archivo rastreado que ha sido modificado en el directorio de trabajo pero que aun no esta preparado.
+Para prepararlo, ejecutas el comando `git add`:
+
+<Image
+    url="/git-workshop/02/out-git-status-staged.png"
+    alt="Output de git status (staged)"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+Ambos archivos estan preparados y formaran parte de tu proxima confirmacion.
+
+---
+
+### Cambios de ultima hora
+
+Ahora supongamos que recuerdas que debes hacer un pequeño cambio en `CONTRIBUTING.md` antes de confirmarlo.
+Modificas el archivo y ahora estas listo para confirmar. Sin embargo, ejecutemos `git status` una vez mas:
+
+<Image
+    url="/git-workshop/02/out-git-status-last-change.png"
+    alt="Output de git status (last-change)"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+¿¿Comoooo??...
+
+<br/>
+
+Ahora `CONTRIBUTING.md` aparece como preparado y como no preparado
+Resulta que _Git_ prepara un archivo de acuerdo al estaod que tenia cuando ejecutas el comando `git add`.
+Si confirmas ahora, se confirmara la version de `CONTRIBUTING.md` que tenias la ultima vez que ejecutaste `git add`
+y no la version que ves ahora en tu directorio de trbaajo al ejecutar `git status`.
+
+<br/>
+
+Si modificas un archivo luego de ejecutar `git add`, deberas ejecutar `git add` de nuevo para preparar la ultima version del archivo:
+
+<Image
+    url="/git-workshop/02/out-git-status-last-change-add.png"
+    alt="Output de git status (last-change-add)"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+---
+
+## Estado Abreviado
+
+Si bien es cierto que la salida de `git status` es bastante explicita, tambien es verdad que es muy extensa.
+Existe un comando para una version mas corta del estado de los cambios.
+Ejecutando `git status -s` o `git status --short` obtendremos algo como esto:
+
+<Image
+    url="/git-workshop/02/out-git-status-s.png"
+    alt="Output de git status (s)"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-xl my-4 mx-auto"
+/>
+
+Las letras que indican el estado de los archivos se compone de 2 columnas:
+
+- **Columna Izquierda** (en verde): Indica el estado preparado (_staged_), el estado que tienen los archivos en el area de _staging_.
+- **Columna Derecha** (en rojo): Indica el estado sin preparar (_unstaged_), el estado que tienen los archivos en el directorio de trabajo (_Working Directory_).
+
+<br/>
+
+Cada letra tiene su significado, la `M` indica **Modificado**, la `A` indica **Nuevo Archivo**, y los `??` significa **No Rastreado**.
+
+---
+
+## Ignorar Archivos
+
+A veces, trendras algun tipo de archivo que no quieres que _Git_ añada automaticamente o mas aun, que ni siquiera quieras que aparezca como no rastreado.
+En estos casos, puedes crear un archivo llamado `.gitignore` que liste patrones a considerar. Aqui un ejemplo:
+
+<Image
+    url="/git-workshop/02/out-gitignore.png"
+    alt="Output de git ignore"
+    fit="contain"
+    aspect="auto"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+> Se pueden definir archivos o carpetas o patrones de archivos y carpetas utilizando expresiones regulares.
+
+---
+
+## Ver cambios preparados y no preparados
+
+### Cambios no preparados
+
+Si el comando `git status` te resulta muy impreciso. Puedes ver exactamente que esta pasando con el comando `git diff`.
+Un ejemplo de `git status` vs `git diff`:
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 items-center justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Output de git status (s)', url: '/git-workshop/02/out-git-status-s.png' },
+		{ alt: 'Output de git diff', url: '/git-workshop/02/out-git-diff.png' },
+	]}
+/>
+
+---
+
+### Cambios preparados
+
+Tambien podemos ver que hemos preparado hasta ahora, con `git diff --staged` o `git diff --cached` (son el mismo comando):
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 items-center justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Output de git status (s)', url: '/git-workshop/02/out-git-status-s.png' },
+		{ alt: 'Output de git diff --staged', url: '/git-workshop/02/out-git-diff-staged.png' },
+	]}
+/>
+
+---
+
+## Confirmar Cambios
+
+Ahora que el area de preparacion (_staging_) esta como queremos, podemos confirmar los cambios.
+La forma sencilla de confirmar es:
+
+<br/>
+
+```bash
+git commit
+```
+
+<br />
+
+Al ejecutar, arrancara el editor que configuramos usando `git config --global core.editor <editor>`:
+
+<br />
+
+```
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch master
+# Changes to be committed:
+#	modified:   CONTRIBUTING.md
+#	new file:   docs.txt
+#	modified:   main.c
+#
+# Changes not staged for commit:
+#	modified:   CONTRIBUTING.md
+#	modified:   README
+#
+# Untracked files:
+#	LICENSE
+#
+# ------------------------ >8 ------------------------
+# Do not modify or remove the line above.
+# Everything below it will be ignored.
+```
+
+---
+
+## Recursos
+
+- [Pro Git - Cap. 2]("https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository"): Desde `2.1` a `2.8` (todo el capitulo 2)
