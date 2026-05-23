@@ -13,12 +13,629 @@ draft: false
 ---
 
 import ImageSet from 'MDX/ImageSet.astro';
+import SideImage from 'MDX/SideImage.astro';
 import Image from 'MDX/Image.astro';
 import FullTitle from 'MDX/FullTitle.astro';
+
+{/*
+==========================================================
+3.4 Flujos de Trabajo Ramificados
+==========================================================
+*/}
 
 <FullTitle>
     <span class="flex flex-col items-center">
         <p>Flujos Remotos</p>
-        <small class="text-lg mt-2"></small>
     </span>
 </FullTitle>
+
+---
+
+## Ramas de _Largo Recorrido_
+
+Por la sencillez de la fusion de _Git_, fusionar una rama a otra varias veces a lo largo del tiempo es facil de hacer.
+Esto te posibilita tener varias ramas siempre abiertas, usandolas en diferentes etapas del ciclo de desarrollo y realizando fusiones frecuentes entre ellas.
+
+<br/>
+
+Muchos desarrolladores que usan _Git_ llevan un flujo de trabajo de esta naturaleza:
+manteniendo en la rama `master` unicamente el codigo totalmente estable,
+y teniendo otras ramas paralelas denominadas `develop` o `next`, en las que trabajan y realizan pruebas.
+
+<br />
+
+<SideImage
+    url="/git-workshop/06/lr-branches-1.png"
+    alt="Vista lineal del ramificado progresivo estable"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    Estas ramas paralelas no suelen estar siempre en un estado estable, pero cada vez que llegan a ese punto, pueden ser fusionadas con `master`.
+    Tambien es habitual incorporar (_pull_) ramas puntuales cuando se completan, asegurandonos de que no van a introducir errores.
+    <br/>
+    En realidad, estamos hablando simplemente de referencias moviendose por la linea temporal de _commits_.
+    Las ramas estables apuntan hacia posiciones mas antiguas en el historial de _commits_, mientras que las ramas avanzadas apuntan hacia posiciones mas recientes.
+
+</SideImage>
+
+---
+
+Puede ser mas sencillo pensar en las ramas como silos de almacenamiento,
+donde grupos de confirmaciones van siendo promocionados hacia silos mas estables a medida que son probados y depurados.
+
+<Image
+    url="/git-workshop/06/lr-branches-2.png"
+    alt="Vista tipo silo del ramificado progresivo estable"
+    fit="contain"
+    aspect="wide"
+    tw="max-w-2xl my-4 mx-auto"
+/>
+
+Este sistema es util para poder ampliar a diversos grados de estabilidad.
+Algunos proyectos muy grandes suelen tener una rama `proposed` o `pu` (_proposed updates_),
+con todo aquello que no esta listo aun para ser integrado en `develop` o `master`.
+La idea es mantener siempre las ramas en diferentes niveles de estabilidad. Cuando alguna alcanza un estado estable, se fusiona con la rama inmediatamente superior.
+
+---
+
+## Ramas _Puntuales_
+
+<SideImage
+    url="/git-workshop/06/topic-branches-1.png"
+    alt="Multiples ramas puntuales"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+
+    Las ramas puntuales son utiles en proyectos de cualquier tamaño.
+    Son ramas de corta duracion que abres para una tarea o funcionalidad determinada.
+    En _Git_, es muy habitual crear, trabajar con, fusionar y eliminar ramas varias veces al dia.
+    <br/>
+
+    Por ejemplo, puedes realizar cierto trabajo en `master`, ramificar para un problema concreto (`iss91`),
+    trabajar un poco en el, ramificar una segunda vez para resolverlo de otra manera (`iss91v2`),
+    volver a `master` para trabajar un poco mas, y luego ramificar para probar algo que no estas seguro de como va a resultar (`dumbidea`).
+</SideImage>
+
+---
+
+Supongamos que decides que la segunda solucion al problema `iss91v2` es la mejor.
+También muestras la rama `dumbidea` a tus companeros y resulta que les parece genial.
+Puedes entonces descartar la rama `iss91` original (perdiendo las confirmaciones `C5` y `C6`)
+y fusionar las otras dos. El historial quedaria similar al de la imagen.
+<br/>
+Es importante recordar que, mientras haces todo esto, todas las ramas son completamente locales.
+Cuando ramificas y fusionas, todo se realiza en tu propio repositorio _Git_: sin ningun servidor, sin ninguna comunicacion remota.
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Multiples ramas puntuales', url: '/git-workshop/06/topic-branches-1.png' },
+		{ alt: 'Historial tras fusionar dumbidea e iss91v2', url: '/git-workshop/06/topic-branches-2.png' },
+	]}
+/>
+
+---
+
+{/*
+==========================================================
+3.5 Ramas Remotas
+==========================================================
+*/}
+
+<FullTitle>
+    <span class="flex flex-col items-center">
+        <p>Ramas Remotas</p>
+    </span>
+</FullTitle>
+
+---
+
+## Ramas Remotas
+
+Las ramas remotas son referencias al estado de las ramas en tus repositorios remotos.
+Son ramas locales que no puedes mover. _Git_ las mueve automaticamente cada vez que estableces comunicacion con el servidor remoto,
+para reflejar con precision el estado de ese repositorio.
+
+<br/>
+
+Estas ramas actuan como marcadores, recordandote donde estaban las ramas en tus repositorios remotos la ultima vez que te conectaste a ellos.
+Las ramas remotas usan el formato `<remoto>/<rama>`.
+Por ejemplo, si quieres ver el estado de la rama `master` en el remoto `origin` la ultima vez que te comunicaste con el, revisas la rama `origin/master`.
+
+---
+
+<SideImage
+    url="/git-workshop/06/remote-branches-1.png"
+    alt="Repositorio local y remoto tras clonar"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    ### Ejemplo
+    Supongamos que tienes un servidor _Git_ en la direccion `git.ourcompany.com`.
+    <br/>
+    Si clonas desde ahi, _Git_ lo denominara automaticamente `origin`, descargara todo su contenido,
+    creara un puntero local hacia donde este la rama `master` en el remoto, y la denominara `origin/master`.
+    _Git_ tambien crea una rama `master` local que parte desde el mismo punto.
+</SideImage>
+
+---
+
+Si haces algun trabajo en tu rama `master` local, y mientras tanto alguien mas envia cambios al servidor,
+sus historiales avanzaran de forma diferente. Ademas, mientras no tengas contacto con el servidor `origin`,
+tu puntero `origin/master` no se movera.
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Repositorio local y remoto tras clonar', url: '/git-workshop/06/remote-branches-1.png' },
+		{ alt: 'Historiales divergentes tras trabajo local y remoto', url: '/git-workshop/06/remote-branches-2.png' },
+	]}
+/>
+
+---
+
+### Sincronizar
+
+<SideImage
+    url="/git-workshop/06/remote-branches-3.png"
+    alt="git fetch actualiza origin/master"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    Para sincronizarte con el remoto usas `git fetch`:
+
+    ```bash
+    git fetch origin
+    ```
+
+    Este comando localiza el servidor `origin`, obtiene todos los datos que aun no tienes,
+    y actualiza tu base de datos local moviendo el puntero `origin/master` a su nueva posicion.
+</SideImage>
+
+---
+
+### Multiples remotos
+
+Supongamos que tienes otro servidor _Git_ interno, usado solo por uno de tus equipos de sprint.
+Puedes agregarlo como remoto con:
+
+```bash
+git remote add teamone git://git.team1.ourcompany.com
+```
+
+Luego puedes traer todo lo que ese servidor tiene y tu no, con `git fetch teamone`.
+Como este servidor contiene un subconjunto de lo que ya tiene `origin`,
+_Git_ no descarga ningun dato, simplemente crea una rama `teamone/master` apuntando al _commit_ que `teamone` tiene en su `master`.
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Rama de seguimiento del servidor teamone', url: '/git-workshop/06/remote-branches-4.png' },
+		{ alt: 'Rama de seguimiento del servidor teamone (fetch)', url: '/git-workshop/06/remote-branches-5.png' },
+	]}
+/>
+
+---
+
+## Publicar (_Push_)
+
+Cuando quieres compartir una rama con el resto del mundo, debes enviarla a un remoto sobre el que tengas permisos de escritura.
+Tus ramas locales no se sincronizan automaticamente con los remotos: tienes que enviar (_push_) explicitamente las ramas que quieras compartir.
+Por ejemplo, si tienes una rama `serverfix` en la que quieres trabajar con otros:
+
+```bash
+git push origin serverfix
+Counting objects: 24, done.
+...
+To https://github.com/schacon/simplegit
+ * [new branch]      serverfix -> serverfix
+```
+
+Esto es un atajo. _Git_ expande automaticamente `serverfix` a `refs/heads/serverfix:refs/heads/serverfix`,
+que significa: _"toma mi rama local serverfix y enviala para actualizar la rama serverfix del remoto"_.
+Tambien puedes hacer:
+
+```bash
+git push origin serverfix:serverfix
+```
+
+O incluso publicarla con un nombre diferente en el remoto:
+
+```bash
+git push origin serverfix:awesomebranch
+```
+
+---
+
+La proxima vez que tus colaboradores hagan `git fetch origin`, obtendran una referencia al estado de `serverfix` en el servidor,
+bajo el nombre `origin/serverfix`.
+
+```bash
+git fetch origin
+remote: Counting objects: 7, done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 3 (delta 0), reused 3 (delta 0)
+Unpacking objects: 100% (3/3), done.
+From https://github.com/schacon/simplegit
+ * [new branch]      serverfix    -> origin/serverfix
+```
+
+Es importante notar que **no obtienen automaticamente una copia local editable**,
+sino solo el puntero remoto. Para integrarlo en su trabajo actual pueden fusionarlo:
+
+```bash
+git merge origin/serverfix
+```
+
+O si quieren su propia rama local de `serverfix` sobre la que trabajar:
+
+```bash
+git checkout -b serverfix origin/serverfix
+Branch serverfix set up to track remote branch serverfix from origin.
+Switched to a new branch 'serverfix'
+```
+
+---
+
+## Ramas de Seguimiento (_Tracking Branches_)
+
+Al hacer `checkout` de una rama local a partir de una rama remota, se crea automaticamente lo que se denomina una **rama de seguimiento** (_tracking branch_).
+Las ramas de seguimiento son ramas locales que tienen una relacion directa con una rama remota.
+Si estas en una rama de seguimiento y ejecutas `git pull`, _Git_ sabe automaticamente de que servidor obtener los datos y con que rama fusionar.
+<br/>
+Cuando clonas un repositorio, generalmente se crea automaticamente una rama `master` que sigue a `origin/master`.
+Sin embargo, puedes configurar otras ramas de seguimiento con `git checkout -b` o con la opcion `--track`:
+
+```bash
+git checkout --track origin/serverfix
+Branch serverfix set up to track remote branch serverfix from origin.
+Switched to a new branch 'serverfix'
+```
+
+Para configurar una rama local con un nombre diferente al de la rama remota:
+
+```bash
+git checkout -b sf origin/serverfix
+Branch sf set up to track remote branch serverfix from origin.
+Switched to a new branch 'sf'
+```
+
+Ahora, tu rama local `sf` hara `push` y `pull` automaticamente hacia/desde `origin/serverfix`.
+Si ya tienes una rama local y quieres asociarla a una rama remota, o cambiar la rama que estas siguiendo, usa `-u` o `--set-upstream-to`:
+
+```bash
+git branch -u origin/serverfix
+Branch serverfix set up to track remote branch serverfix from origin.
+```
+
+---
+
+Para ver todas tus ramas de seguimiento configuradas, puedes usar `git branch -vv`:
+
+```bash
+git branch -vv
+  iss53     7e424c3 [origin/iss53: ahead 2] forgot the brackets
+  master    1ae2a45 [origin/master] deploying index fix
+* serverfix f8674d9 [teamone/server-fix-good: ahead 3, behind 1] this should do it
+  testing   5ea463a trying something new
+```
+
+Esto muestra que:
+- `iss53` sigue a `origin/iss53` y esta **2 commits por delante** del remoto.
+- `master` sigue a `origin/master` y esta al dia.
+- `serverfix` sigue a `teamone/server-fix-good`, esta **3 commits por delante** y **1 por detras**.
+- `testing` no sigue ninguna rama remota.
+
+<br/>
+
+> Estos datos provienen de la ultima vez que hiciste `fetch`. Si quieres valores totalmente actualizados, haz primero `git fetch --all` y luego `git branch -vv`.
+
+---
+
+## Traer cambios (_Pull_)
+
+- `git fetch` descarga los cambios del servidor pero **no los fusiona** con tu trabajo local.
+- `git pull` es esencialmente un `git fetch` seguido de un `git merge`, aplicado automaticamente sobre la rama que tu rama local esta siguiendo.
+
+<br/>
+
+En general, es mas explicito y menos propenso a confusiones usar `git fetch` y `git merge` por separado.
+
+<br/>
+
+> Pero personalmente prefiero usar `git pull`..
+
+---
+
+## Eliminar Ramas Remotas
+
+Si ya terminaste con una rama remota y quieres borrarla del servidor:
+
+```bash
+git push origin --delete serverfix
+To https://github.com/schacon/simplegit
+ - [deleted]         serverfix
+```
+
+Esto solo elimina el puntero en el servidor. _Git_ conserva los datos durante un tiempo hasta que el recolector de basura los limpie,
+por lo que si fue eliminada accidentalmente suele ser sencillo recuperarla.
+
+---
+
+{/*
+==========================================================
+3.6 Reorganizar el Trabajo Realizado
+==========================================================
+*/}
+
+<FullTitle>
+    <span class="flex flex-col items-center">
+        <p>Reorganizar el Trabajo Realizado</p>
+        <small class="text-lg mt-2">_Rebase_</small>
+    </span>
+</FullTitle>
+
+---
+
+## Reorganizar el Trabajo Realizado
+
+En _Git_ hay dos formas de integrar cambios de una rama en otra: `merge` y `rebase`.
+En esta seccion veremos que es la reorganizacion (_rebase_), como hacerla, por que es una herramienta bastante util, y en que casos no conviene usarla.
+
+---
+
+### Reorganizacion Basica
+
+Volvamos al ejemplo de la seccion de fusion. Tenemos dos ramas divergentes: `master` y `experiment`.
+
+<Image
+    url="/git-workshop/06/basic-rebase-1.png"
+    alt="Historial divergente entre master y experiment"
+    fit="contain"
+    aspect="wide"
+/>
+
+La forma mas sencilla de integrar las ramas es `merge`, que realiza una fusion a tres bandas entre las dos ultimas instantaneas de cada rama (`C3` y `C4`) y su ancestro comun (`C2`), generando una nueva confirmacion con dos padres.
+
+<Image
+    url="/git-workshop/06/basic-rebase-2.png"
+    alt="Fusion mediante merge"
+    fit="contain"
+    aspect="wide"
+/>
+
+Sin embargo, tambien puedes tomar los cambios introducidos en `C4` y reaplicarlos encima de `C3`.
+En _Git_, esto se llama **reorganizar** (_rebase_).
+Con el comando `git rebase`, puedes tomar todos los cambios confirmados en una rama y reaplicarlos sobre otra:
+
+```bash
+git checkout experiment
+git rebase master
+First, rewinding head to replay your work on top of it...
+Applying: added staged command
+```
+
+Lo que hace es ir al ancestro comun de las dos ramas (`experiment` y `master`),
+calcular las diferencias introducidas por cada confirmacion de `experiment`,
+guardar esas diferencias en archivos temporales,
+actualizar la rama `experiment` al mismo punto que `master`,
+y finalmente aplicar ordenadamente cada diferencia.
+
+<Image
+    url="/git-workshop/06/basic-rebase-3.png"
+    alt="Rebase de experiment sobre master"
+    fit="contain"
+    aspect="wide"
+/>
+
+Ahora solo queda volver a `master` y hacer un _fast-forward_:
+
+```bash
+git checkout master
+git merge experiment
+```
+
+<Image
+    url="/git-workshop/06/basic-rebase-4.png"
+    alt="Fast-forward de master tras el rebase"
+    fit="contain"
+    aspect="wide"
+/>
+
+El resultado final es identico al de la fusion, pero el historial queda mas limpio:
+parece que todo el trabajo se hizo en serie, aunque en realidad se hizo en paralelo.
+
+> El rebase reproduce confirmaciones en el mismo orden en que fueron creadas, mientras que la fusion toma los puntos finales y los une.
+
+---
+
+### Reorganizaciones mas Interesantes
+
+El rebase puede aplicarse sobre una rama que no sea su base directa.
+Supongamos un historial como este: una rama `server` creada a partir de `master` para agregar funcionalidades del lado del servidor, y una rama `client` creada a partir de `server` para cambios del lado del cliente.
+
+<Image
+    url="/git-workshop/06/interesting-rebase-1.png"
+    alt="Historial con rama client sobre server sobre master"
+    fit="contain"
+    aspect="wide"
+/>
+
+Quieres integrar los cambios de `client` en `master` para publicarlos, pero dejar los cambios de `server` aparte hasta que esten mejor probados.
+Puedes usar `git rebase --onto` para tomar los commits de `client` que no estan en `server` y reaplicarlos sobre `master`:
+
+```bash
+git rebase --onto master server client
+```
+
+Esto significa: _"toma la rama `client`, averigua los cambios desde que divergio de `server`, y aplicalos sobre `master`"_.
+
+<Image
+    url="/git-workshop/06/interesting-rebase-2.png"
+    alt="Rebase de client sobre master usando --onto"
+    fit="contain"
+    aspect="wide"
+/>
+
+Ahora puedes hacer _fast-forward_ de `master`:
+
+```bash
+git checkout master
+git merge client
+```
+
+<Image
+    url="/git-workshop/06/interesting-rebase-3.png"
+    alt="master tras hacer fast-forward con client"
+    fit="contain"
+    aspect="wide"
+/>
+
+Cuando los cambios de `server` esten listos, puedes reorganizarlos sobre `master` sin tener que hacer checkout antes:
+
+```bash
+git rebase master server
+```
+
+<Image
+    url="/git-workshop/06/interesting-rebase-4.png"
+    alt="Rebase de server sobre master"
+    fit="contain"
+    aspect="wide"
+/>
+
+Y finalmente integrar y limpiar:
+
+```bash
+git checkout master
+git merge server
+git branch -d client
+git branch -d server
+```
+
+<Image
+    url="/git-workshop/06/interesting-rebase-5.png"
+    alt="Historial final limpio"
+    fit="contain"
+    aspect="wide"
+/>
+
+---
+
+## Los Peligros del Rebase
+
+El rebase tiene un coste: **nunca reorganices confirmaciones que ya hayas enviado a un repositorio publico**.
+
+Si reorganizas commits que otros ya tienen como base de su trabajo, les estaras causando problemas serios.
+Cuando reorganizas, _Git_ descarta las confirmaciones originales y crea otras nuevas que son similares pero distintas.
+Si alguien tenia trabajo basado en esas confirmaciones originales, tendra que refusionar su trabajo, y el historial se volvera un caos.
+
+Considera este ejemplo: clonas desde un servidor central y haces algo de trabajo local.
+
+<Image
+    url="/git-workshop/06/perils-of-rebasing-1.png"
+    alt="Clonas un repositorio y haces trabajo local"
+    fit="contain"
+    aspect="wide"
+/>
+
+Alguien mas hace trabajo, incluyendo una fusion, y lo envia al servidor. Haces `git fetch` y obtienes esas confirmaciones.
+
+<Image
+    url="/git-workshop/06/perils-of-rebasing-2.png"
+    alt="Otro colaborador sube trabajo fusionado"
+    fit="contain"
+    aspect="wide"
+/>
+
+Fusionas ese trabajo en tu rama local.
+
+<Image
+    url="/git-workshop/06/perils-of-rebasing-3.png"
+    alt="Fusionas el trabajo remoto en tu rama"
+    fit="contain"
+    aspect="wide"
+/>
+
+Pero entonces esa persona decide reorganizar su trabajo en vez de fusionar, y hace `git push --force` sobreescribiendo el historial en el servidor.
+Cuando vuelves a hacer `git fetch`, obtienes las nuevas confirmaciones reorganizadas.
+
+<Image
+    url="/git-workshop/06/perils-of-rebasing-4.png"
+    alt="El colaborador sobreescribe el historial con rebase"
+    fit="contain"
+    aspect="wide"
+/>
+
+Ahora ambos estan en un lio. Si haces `git pull`, crearas una fusion confirmada que incluye ambas lineas del historial, y el repositorio quedara con confirmaciones duplicadas (el trabajo original y su version reorganizada), lo cual genera confusion.
+
+<Image
+    url="/git-workshop/06/perils-of-rebasing-5.png"
+    alt="Historial duplicado tras fusionar trabajo reorganizado"
+    fit="contain"
+    aspect="wide"
+/>
+
+---
+
+### Reorganizar una Reorganizacion
+
+Si te encuentras en esta situacion, _Git_ tiene algunos recursos que pueden ayudarte.
+Ademas de la suma de control SHA-1 del commit, _Git_ calcula una suma de control basada en el parche que introduce cada confirmacion — el llamado _patch-id_.
+
+Si te traes el trabajo sobreescrito y lo reorganizas sobre las nuevas confirmaciones de tu companero con `git rebase teamone/master`, _Git_ puede identificar automaticamente que parte correspondia a tu trabajo y aplicarla de vuelta. En vez de una nueva fusion confusa, el resultado sera un historial mas limpio.
+
+<Image
+    url="/git-workshop/06/perils-of-rebasing-6.png"
+    alt="Reorganizar encima de un trabajo sobreescrito reorganizado"
+    fit="contain"
+    aspect="wide"
+/>
+
+Esto solo funciona si los parches de tu companero son muy similares a los originales.
+Tambien puedes simplificar el proceso usando `git pull --rebase` en vez del `git pull` tradicional,
+o hacerlo manualmente con `git fetch` seguido de `git rebase teamone/master`.
+
+Si sueles usar `git pull` y quieres que `--rebase` este activado por defecto:
+
+```bash
+git config --global pull.rebase true
+```
+
+> Si solo reorganizas confirmaciones que nunca han estado disponibles publicamente, estaras bien.
+> Si reorganizas confirmaciones sobre las que otros han basado su trabajo, prepárate para problemas.
+
+---
+
+## Rebase vs. Fusion
+
+Ahora que has visto ambas herramientas, te preguntaras cual es mejor. Para responder, vale la pena pensar en que representa el historial.
+
+Para algunos, el historial de un repositorio es **un registro de todo lo que ha pasado**: un documento historico valioso por si mismo que no deberia alterarse. Cambiar el historial de confirmaciones es casi como falsificar la historia.
+
+Para otros, el historial es **la historia de como se hizo el proyecto**: algo que se edita y refina antes de publicar, igual que un borrador de un libro o un manual de instrucciones.
+
+No hay una respuesta unica correcta. _Git_ es una herramienta poderosa y cada equipo decide segun su contexto.
+
+La regla general es: **reorganiza tu trabajo local que aun no has compartido antes de enviarlo; nunca reorganices nada que ya haya sido compartido.**
