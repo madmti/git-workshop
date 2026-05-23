@@ -408,33 +408,43 @@ En esta seccion veremos que es la reorganizacion (_rebase_), como hacerla, por q
 ### Reorganizacion Basica
 
 Volvamos al ejemplo de la seccion de fusion. Tenemos dos ramas divergentes: `master` y `experiment`.
+La forma mas sencilla de integrar las ramas es `merge`, que realiza una fusion entre las dos ultimas instantaneas de cada rama (`C3` y `C4`) y su ancestro comun (`C2`), generando una nueva confirmacion con dos padres.
 
-<Image
-    url="/git-workshop/06/basic-rebase-1.png"
-    alt="Historial divergente entre master y experiment"
-    fit="contain"
-    aspect="wide"
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Historial divergente entre master y experiment', url: '/git-workshop/06/basic-rebase-1.png' },
+		{ alt: 'Fusion mediante merge', url: '/git-workshop/06/basic-rebase-2.png' },
+	]}
 />
 
-La forma mas sencilla de integrar las ramas es `merge`, que realiza una fusion a tres bandas entre las dos ultimas instantaneas de cada rama (`C3` y `C4`) y su ancestro comun (`C2`), generando una nueva confirmacion con dos padres.
+---
 
-<Image
-    url="/git-workshop/06/basic-rebase-2.png"
-    alt="Fusion mediante merge"
+<SideImage
+    url="/git-workshop/06/basic-rebase-3.png"
+    alt="Rebase de experiment sobre master"
     fit="contain"
     aspect="wide"
-/>
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    Sin embargo, tambien puedes tomar los cambios introducidos en `C4` y reaplicarlos encima de `C3`.
+    En _Git_, esto se llama **reorganizar** (_rebase_).
+    Con el comando `git rebase`, puedes tomar todos los cambios confirmados en una rama y reaplicarlos sobre otra:
 
-Sin embargo, tambien puedes tomar los cambios introducidos en `C4` y reaplicarlos encima de `C3`.
-En _Git_, esto se llama **reorganizar** (_rebase_).
-Con el comando `git rebase`, puedes tomar todos los cambios confirmados en una rama y reaplicarlos sobre otra:
+    ```bash
+    git checkout experiment
+    git rebase master
+    First, rewinding head to replay your work on top of it...
+    Applying: added staged command
+    ```
+</SideImage>
 
-```bash
-git checkout experiment
-git rebase master
-First, rewinding head to replay your work on top of it...
-Applying: added staged command
-```
 
 Lo que hace es ir al ancestro comun de las dos ramas (`experiment` y `master`),
 calcular las diferencias introducidas por cada confirmacion de `experiment`,
@@ -442,88 +452,103 @@ guardar esas diferencias en archivos temporales,
 actualizar la rama `experiment` al mismo punto que `master`,
 y finalmente aplicar ordenadamente cada diferencia.
 
-<Image
-    url="/git-workshop/06/basic-rebase-3.png"
-    alt="Rebase de experiment sobre master"
-    fit="contain"
-    aspect="wide"
-/>
+---
 
-Ahora solo queda volver a `master` y hacer un _fast-forward_:
 
-```bash
-git checkout master
-git merge experiment
-```
-
-<Image
+<SideImage
     url="/git-workshop/06/basic-rebase-4.png"
     alt="Fast-forward de master tras el rebase"
     fit="contain"
     aspect="wide"
-/>
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    Ahora solo queda volver a `master` y hacer un _fast-forward_:
 
-El resultado final es identico al de la fusion, pero el historial queda mas limpio:
-parece que todo el trabajo se hizo en serie, aunque en realidad se hizo en paralelo.
+    ```bash
+    git checkout master
+    git merge experiment
+    ```
+
+    El resultado final es identico al de la fusion, pero el historial queda mas limpio:
+    parece que todo el trabajo se hizo en serie, aunque en realidad se hizo en paralelo.
+</SideImage>
+
+<br/>
 
 > El rebase reproduce confirmaciones en el mismo orden en que fueron creadas, mientras que la fusion toma los puntos finales y los une.
 
 ---
 
-### Reorganizaciones mas Interesantes
-
-El rebase puede aplicarse sobre una rama que no sea su base directa.
-Supongamos un historial como este: una rama `server` creada a partir de `master` para agregar funcionalidades del lado del servidor, y una rama `client` creada a partir de `server` para cambios del lado del cliente.
-
-<Image
+<SideImage
     url="/git-workshop/06/interesting-rebase-1.png"
     alt="Historial con rama client sobre server sobre master"
     fit="contain"
     aspect="wide"
-/>
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    ### Reorganizaciones mas Interesantes
 
-Quieres integrar los cambios de `client` en `master` para publicarlos, pero dejar los cambios de `server` aparte hasta que esten mejor probados.
-Puedes usar `git rebase --onto` para tomar los commits de `client` que no estan en `server` y reaplicarlos sobre `master`:
+    El rebase puede aplicarse sobre una rama que no sea su base directa.
+    Supongamos un historial como este: una rama `server` creada a partir de `master` para agregar funcionalidades del lado del servidor, y una rama `client` creada a partir de `server` para cambios del lado del cliente.
+</SideImage>
 
-```bash
-git rebase --onto master server client
-```
-
-Esto significa: _"toma la rama `client`, averigua los cambios desde que divergio de `server`, y aplicalos sobre `master`"_.
-
-<Image
+<SideImage
     url="/git-workshop/06/interesting-rebase-2.png"
     alt="Rebase de client sobre master usando --onto"
     fit="contain"
     aspect="wide"
-/>
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    Quieres integrar los cambios de `client` en `master` para publicarlos, pero dejar los cambios de `server` aparte hasta que esten mejor probados.
+    Puedes usar `git rebase --onto` para tomar los commits de `client` que no estan en `server` y reaplicarlos sobre `master`:
 
-Ahora puedes hacer _fast-forward_ de `master`:
+    ```bash
+    git rebase --onto master server client
+    ```
 
-```bash
-git checkout master
-git merge client
-```
+    > Esto significa: _"toma la rama `client`, averigua los cambios desde que divergio de `server`, y aplicalos sobre `master`"_.
+</SideImage>
 
-<Image
+---
+
+<SideImage
     url="/git-workshop/06/interesting-rebase-3.png"
     alt="master tras hacer fast-forward con client"
     fit="contain"
     aspect="wide"
-/>
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    Ahora puedes hacer _fast-forward_ de `master`:
 
-Cuando los cambios de `server` esten listos, puedes reorganizarlos sobre `master` sin tener que hacer checkout antes:
+    ```bash
+    git checkout master
+    git merge client
+    ```
+</SideImage>
 
-```bash
-git rebase master server
-```
-
-<Image
+<SideImage
     url="/git-workshop/06/interesting-rebase-4.png"
     alt="Rebase de server sobre master"
     fit="contain"
     aspect="wide"
-/>
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    Cuando los cambios de `server` esten listos, puedes reorganizarlos sobre `master` sin tener que hacer checkout antes:
+
+    ```bash
+    git rebase master server
+    ```
+
+    > Esto significa: _"toma la rama `server`, averigua los cambios desde que divergio de `master`, y aplicalos sobre `master`"_.
+</SideImage>
+
+---
+
 
 Y finalmente integrar y limpiar:
 
@@ -534,16 +559,21 @@ git branch -d client
 git branch -d server
 ```
 
-<Image
-    url="/git-workshop/06/interesting-rebase-5.png"
-    alt="Historial final limpio"
-    fit="contain"
-    aspect="wide"
+<ImageSet
+	layout="flex"
+	containerTw="my-4 justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Rebase de server sobre master', url: '/git-workshop/06/interesting-rebase-4.png' },
+		{ alt: 'Historial final limpio', url: '/git-workshop/06/interesting-rebase-5.png' },
+	]}
 />
 
 ---
 
-## Los Peligros del Rebase
+## Los Peligros del _Rebase_
 
 El rebase tiene un coste: **nunca reorganices confirmaciones que ya hayas enviado a un repositorio publico**.
 
@@ -551,71 +581,69 @@ Si reorganizas commits que otros ya tienen como base de su trabajo, les estaras 
 Cuando reorganizas, _Git_ descarta las confirmaciones originales y crea otras nuevas que son similares pero distintas.
 Si alguien tenia trabajo basado en esas confirmaciones originales, tendra que refusionar su trabajo, y el historial se volvera un caos.
 
-Considera este ejemplo: clonas desde un servidor central y haces algo de trabajo local.
+### Ejemplo
 
-<Image
-    url="/git-workshop/06/perils-of-rebasing-1.png"
-    alt="Clonas un repositorio y haces trabajo local"
-    fit="contain"
-    aspect="wide"
-/>
-
+Clonas desde un servidor central y haces algo de trabajo local.
 Alguien mas hace trabajo, incluyendo una fusion, y lo envia al servidor. Haces `git fetch` y obtienes esas confirmaciones.
+Luego fusionas ese trabajo en tu rama local.
 
-<Image
-    url="/git-workshop/06/perils-of-rebasing-2.png"
-    alt="Otro colaborador sube trabajo fusionado"
-    fit="contain"
-    aspect="wide"
+<ImageSet
+	layout="flex"
+	containerTw="my-4 justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Clonas un repositorio y haces trabajo local', url: '/git-workshop/06/perils-of-rebasing-1.png' },
+		{ alt: 'Otro colaborador sube trabajo fusionado', url: '/git-workshop/06/perils-of-rebasing-2.png' },
+	]}
 />
 
-Fusionas ese trabajo en tu rama local.
-
-<Image
-    url="/git-workshop/06/perils-of-rebasing-3.png"
-    alt="Fusionas el trabajo remoto en tu rama"
-    fit="contain"
-    aspect="wide"
-/>
+---
 
 Pero entonces esa persona decide reorganizar su trabajo en vez de fusionar, y hace `git push --force` sobreescribiendo el historial en el servidor.
 Cuando vuelves a hacer `git fetch`, obtienes las nuevas confirmaciones reorganizadas.
-
-<Image
-    url="/git-workshop/06/perils-of-rebasing-4.png"
-    alt="El colaborador sobreescribe el historial con rebase"
-    fit="contain"
-    aspect="wide"
-/>
-
 Ahora ambos estan en un lio. Si haces `git pull`, crearas una fusion confirmada que incluye ambas lineas del historial, y el repositorio quedara con confirmaciones duplicadas (el trabajo original y su version reorganizada), lo cual genera confusion.
 
-<Image
-    url="/git-workshop/06/perils-of-rebasing-5.png"
-    alt="Historial duplicado tras fusionar trabajo reorganizado"
-    fit="contain"
-    aspect="wide"
+<ImageSet
+	layout="flex"
+	containerTw="my-4 justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Fusionas el trabajo remoto en tu rama', url: '/git-workshop/06/perils-of-rebasing-3.png' },
+		{ alt: 'El colaborador sobreescribe el historial con rebase', url: '/git-workshop/06/perils-of-rebasing-4.png' },
+	]}
 />
 
 ---
 
 ### Reorganizar una Reorganizacion
 
-Si te encuentras en esta situacion, _Git_ tiene algunos recursos que pueden ayudarte.
-Ademas de la suma de control SHA-1 del commit, _Git_ calcula una suma de control basada en el parche que introduce cada confirmacion — el llamado _patch-id_.
-
-Si te traes el trabajo sobreescrito y lo reorganizas sobre las nuevas confirmaciones de tu companero con `git rebase teamone/master`, _Git_ puede identificar automaticamente que parte correspondia a tu trabajo y aplicarla de vuelta. En vez de una nueva fusion confusa, el resultado sera un historial mas limpio.
-
-<Image
-    url="/git-workshop/06/perils-of-rebasing-6.png"
-    alt="Reorganizar encima de un trabajo sobreescrito reorganizado"
+<SideImage
+    url="/git-workshop/06/perils-of-rebasing-5.png"
+    alt="Historial duplicado tras fusionar trabajo reorganizado"
     fit="contain"
     aspect="wide"
-/>
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    Si te encuentras en esta situacion, _Git_ tiene algunos recursos que pueden ayudarte.
+    Ademas del _checksum_ `SHA-1` del _commit_, _Git_ calcula un _checksum_ basado en el parche que introduce cada confirmacion — el llamado _patch-id_.
+    <br/>
+    Si te traes el trabajo sobreescrito y lo reorganizas sobre las nuevas confirmaciones de tu companero con `git rebase teamone/master`,
+    _Git_ puede identificar automaticamente que parte correspondia a tu trabajo y aplicarla de vuelta.
+    En vez de una nueva fusion confusa, el resultado sera un historial mas limpio.
+</SideImage>
+
+---
 
 Esto solo funciona si los parches de tu companero son muy similares a los originales.
 Tambien puedes simplificar el proceso usando `git pull --rebase` en vez del `git pull` tradicional,
 o hacerlo manualmente con `git fetch` seguido de `git rebase teamone/master`.
+
+<br/>
 
 Si sueles usar `git pull` y quieres que `--rebase` este activado por defecto:
 
@@ -628,14 +656,23 @@ git config --global pull.rebase true
 
 ---
 
-## Rebase vs. Fusion
+## _Rebase_ vs _Merge_
 
 Ahora que has visto ambas herramientas, te preguntaras cual es mejor. Para responder, vale la pena pensar en que representa el historial.
 
+<br/>
+
 Para algunos, el historial de un repositorio es **un registro de todo lo que ha pasado**: un documento historico valioso por si mismo que no deberia alterarse. Cambiar el historial de confirmaciones es casi como falsificar la historia.
+
+<br/>
 
 Para otros, el historial es **la historia de como se hizo el proyecto**: algo que se edita y refina antes de publicar, igual que un borrador de un libro o un manual de instrucciones.
 
+<br/>
+
 No hay una respuesta unica correcta. _Git_ es una herramienta poderosa y cada equipo decide segun su contexto.
 
-La regla general es: **reorganiza tu trabajo local que aun no has compartido antes de enviarlo; nunca reorganices nada que ya haya sido compartido.**
+### En la practica
+
+Reorganiza libremente en **ramas locales o en ramas puntuales que solo tu estes trabajando**.
+Evita el rebase en ramas de largo recorrido compartidas (`master`, `develop`, etc.) o en cualquier rama sobre la que alguien mas haya basado su trabajo.
