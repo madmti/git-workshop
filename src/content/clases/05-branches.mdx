@@ -2,15 +2,16 @@
 title: "Branch & Merge en profundidad"
 description: "Procedimientos esenciales de ramificación, fusión, trabajo colaborativo y reorganización con rebase en Git."
 clase: 5
-duracion: "45m"
+duracion: "2h"
 dificultad: media
 recursos:
   - titulo: "Pro Git — Cap. 3"
     url: https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell
-draft: true
+draft: false
 ---
 
 import ImageSet from 'MDX/ImageSet.astro';
+import SideImage from 'MDX/SideImage.astro';
 import Image from 'MDX/Image.astro';
 import FullTitle from 'MDX/FullTitle.astro';
 
@@ -20,3 +21,595 @@ import FullTitle from 'MDX/FullTitle.astro';
         <small class="text-lg mt-2">Branching, Merging, Colaboración y Rebase</small>
     </span>
 </FullTitle>
+
+---
+
+## ¿Que es una rama/_branch_?
+
+Para entender realmente como ramifica _Git_, tenemos que examinar la forma en que almacena sus datos.
+
+Recordemos que en cada confirmacion de cambios, _Git_ almacena una instantanea (_snapshot_).
+Dicha _snapshot_ contiene ademas unos metadatos con el **autor**, **mensaje explicativo**, y **una o varias referencias a las confirmaciones que sean padres directos de esta**.
+
+<br/>
+
+> Un padre en los casos de confirmacion normal, y multiples padres en los casos de estar confirmando una fusion _merge_ de dos o mas ramas.
+
+<br/>
+
+Supongamos que tenemos una carpeta con 3 archivos, preparamos (_stage_) todos ellos y confirmamos.
+Al preparar los archivos, _Git_ realiza un _checksum_ para cada uno, almacena una copia de cada uno en el repositorio (las copias se denominan _blobs_),
+y guarda cada _checksum_ en el area de preparacion (_staging_):
+
+```bash
+git add README test.rb LICENSE
+git commit -m 'initial commit of my project'
+```
+
+Cuando creas una confirmación con el comando `git commit`,
+_Git_ realiza _checksums_ de cada subdirectorio,
+y las guarda como objetos arbol (_tree_) en el repositorio Git.
+Despues, _Git_ crea un objeto de confirmación con los metadatos pertinentes
+y una referencia al objeto arbol raiz del proyecto.
+
+---
+
+<SideImage
+    url="/git-workshop/03/commit-and-tree.png"
+    alt="Diagrama de arbol de git"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    En este momento, el repositorio de _Git_ contendra cinco objetos:
+
+    - un _blob_ para cada uno de los 3 archivos.
+    - un _tree_ con la lista de contenidos del directorio.
+    - un _commit_ referenciando a la raiz de ese _tree_ y conteniendo el resto de metadatos pertinentes.
+</SideImage>
+
+<SideImage
+    url="/git-workshop/03/commits-and-parents.png"
+    alt="Diagrama de arbol de git"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    Si hacemos mas cambios y volvemos a confirmar, la siguiente confirmacion guardara una referencia a su confirmacion precedente.
+</SideImage>
+
+---
+
+<SideImage
+    url="/git-workshop/03/branch-and-history.png"
+    alt="Diagrama de arbol de git"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    Una rama de _Git_ es simplemente una referencia movil apuntando a una de estas confirmaciones (_commit_).
+    La rama por defecto de _Git_ es la rama `master`.
+    Con la primera confirmacion de cambios que realicemos, se creara esta rama principal `master` apuntando a dicha confirmacion.
+    En cada confirmacion de cambios que realicemos, la rama ira avanzando automaticamente.
+</SideImage>
+
+---
+
+<SideImage
+    url="/git-workshop/03/two-branches.png"
+    alt="Diagrama de ramas de git (2 ramas)"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    ## Crear una Nueva Rama
+    ¿Que sucede cuando creamos una nueva rama?.
+    Simplemente se crea una nueva referencia para que la puedas mover libremente.
+    Por ejemplo supongamos que creamos una nueva rama `testing`.
+    Para eso usamos el comando `git branch`:
+
+    ```bash
+    git branch testing
+    ```
+</SideImage>
+
+<SideImage
+    url="/git-workshop/03/head-to-master.png"
+    alt="Diagrama de ramas de git (HEAD ~ master)"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    ¿Como sabe _Git_ en que rama estamos en este momento?.
+    Lo hace mediante una referencia/puntero especial denominado `HEAD`.
+    Este apunta a la rama local en la que estemos en este momento,
+    en este caso la rama `master`, ya que el comando `git branch` solamente crea una nueva rama,
+    pero no salta a dicha rama.
+
+
+    Esto se puede ver facil con `git log --decorate`:
+    ```bash
+    git log --oneline --decorate
+    f30ab (HEAD, master, testing) add feature #32 - ability to add
+    34ac2 fixed bug #1328 - stack overflow under certain conditions
+    98ca9 initial commit of my project
+    ```
+</SideImage>
+
+---
+
+<SideImage
+    url="/git-workshop/03/head-to-testing.png"
+    alt="Diagrama de ramas de git (HEAD ~ testing)"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    ## Cambiar de Rama
+    Para saltar de una rama a otra, tienes que utilizar el comando `git checkout`.
+    El siguiente comando mueve la referencia `HEAD` a la rama `testing`:
+
+    ```bash
+    git checkout testing
+    ```
+</SideImage>
+
+---
+
+<SideImage
+    url="/git-workshop/03/advance-testing.png"
+    alt="Diagrama de ramas de git (HEAD ~ testing) despues del commit"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    ### Despues del commit
+    ¿Cual es el significado de todo esto?. Lo veremos tras realizar otra confirmacion:
+
+    ```bash
+    git commit -am 'small changes'
+    ```
+
+    Observamos algo interesante: la rama `testing` avanza, mientras que la rama `master` permanece en la confirmacion donde estaba
+    cuando lanzamos el comando `git checkout` para saltar.
+</SideImage>
+
+<SideImage
+    url="/git-workshop/03/checkout-master.png"
+    alt="Diagrama de ramas de git (HEAD ~ master) despues del commit"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    Ahora volvamos a la rama `master`:
+
+    ```bash
+    git checkout master
+    ```
+
+    Este comando realiza 2 acciones:
+
+    - Mueve la referencia `HEAD` de nuevo a la rama `master`.
+    - Revierte los archivos de tu directorio de trabajo, dejandolos tal y como estaban en la ultima _snapshot_ de la rama `master`.
+
+</SideImage>
+
+---
+
+<SideImage
+    url="/git-workshop/03/advance-master.png"
+    alt="Diagrama de ramas de git (HEAD ~ master) bifurcacion"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    ### Bifurcacion
+    Hagamos algunos cambios mas y confirmemoslos:
+
+    ```bash
+    git commit -am 'thanks for the opportunity'
+    ```
+
+    Ahora el historial del proyecto **diverge**.
+    Los cambios realizados en ambas sesiones de trabajo (`master` y `testing`)
+    estan aislados en **ramas independientes**.
+    Podemos saltar libremente entre una y otra segun estimemos oportuno.
+    Y todo con 3 simples comandos: `git branch`, `git checkout` y `git commit`
+</SideImage>
+
+<br/>
+
+Tambien podemos ver la **bifurcacion** facilmente utilizando el comando `git log`.
+Ejecutaremos el siguiente comando para ver el historial de las confirmaciones,
+indicando donde estan las referencias a las ramas y como ha **divergido** el historial.
+
+```bash
+git log --oneline --decorate --graph --all
+* c2b9e (HEAD, master) made other changes
+| * 87ab2 (testing) made a change
+|/
+* f30ab add feature #32 - ability to add new formats to the
+* 34ac2 fixed bug #1328 - stack overflow under certain conditions
+* 98ca9 initial commit of my project
+```
+
+> Debido a que una rama de _Git_ es realmente un simple archivo que contiene 40 caracteres de un _checksum_ `SHA-1`,
+> no cuesta nada crear y destruir ramas en _Git_.
+> Crear una nueva rama es tan rapido y simple como escribir 41 bytes en un archivo.
+
+---
+
+<FullTitle>
+    <span class="flex flex-col items-center">
+        <p>Procedimientos Basicos</p>
+        <small class="text-lg mt-2">_Ramificar y Fusionar_</small>
+    </span>
+</FullTitle>
+
+---
+
+## Contexto
+
+Vamos a presentar un ejemplo simple de ramificar y fusionar. Imaginemos que seguimos los siguientes pasos:
+
+- Trabajas en un sitio web.
+- Creas una rama para un nuevo tema sobre el que quieres trabajar.
+- Realizas algo de trabajo en esa rama.
+
+<br/>
+
+En este momento, recibes una llamada avisandote de un problema critico que debes resolver.
+Y sigues los siguientes pasos:
+
+- Vuelves a la rama de produccion original.
+- Creas una nueva rama para el problema critico y lo resuelves trabajando en ella.
+- Tras las pertinentes pruebas, fusionas (_merge_) esa rama y la envias (_push_) a la rama de produccion.
+- Vuelves a la rama del tema en que andabas antes de la llamada y continuas tu trabajo.
+
+---
+## Procedimientos Basicos de _Ramificacion_
+Imagina que estas trabajando en un proyecto y tienes algunos _commits_ realizados.
+Decides trabajar en el problema `#53`.
+Para crear una nueva rama y saltar a ella, en un solo paso utilizamos `git checkout -b`:
+
+```bash
+git checkout -b iss53
+Switched to a new branch "iss53"
+```
+
+Comparemos ahora el _Antes_ y _Despues_:
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Diagrama de commits (1)', url: '/git-workshop/03/basic-branching-1.png' },
+		{ alt: 'Diagrama de commits (2)', url: '/git-workshop/03/basic-branching-2.png' },
+	]}
+/>
+
+> `git checkout -b <rama>` es un atajo para `git branch <rama>` y luego `git checkout <rama>`.
+
+---
+
+<SideImage
+    url="/git-workshop/03/basic-branching-3.png"
+    alt="Diagrama de commits (3)"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    Trabajas en el sitio web y haces algunos _commits_.
+    Con ello avanzas en la rama `iss53`, que es la que tienes activa en este momento.
+
+    ```bash
+    nvim index.html # Editas un archivo
+    git commit -am 'added a new footer [issue 53]'
+    ```
+
+    <br/>
+
+    Entonces, recibes la llamada avisandote de otro problema urgente en el sitio web y debes resolverlo inmediatamente.
+    Al usar _Git_, no necesitas mezclar el nuevo problema con los cambios que ya habias realizado sobre el problema `#53`,
+    ni tampoco perder tiempo revirtiendo esos cambios para podeer trabajar sobre el contenido que esta en produccion.
+
+</SideImage>
+
+<br />
+
+Basta con saltar de nuevo a `master` y seguir trabajando desde ahi.
+Pero, antes de poder hacer eso, debemos tomar en cuenta que si tenemos cambios aun no confirmados en el directorio de trabajo o en el area de preparacion,
+_Git_ no nos permitira saltar a otra rama con la que podriamos tener conflictos.
+
+<br/>
+
+> Lo mejor siempre es tener un estado de trabajo limpio y despejado antes de saltar entre ramas.
+
+<br/>
+
+Entonces con todo confirmado, cambiamos a la rama `master`:
+```bash
+git checkout master
+Switched to branch 'master'
+```
+
+---
+
+> Recordemos que _Git_ añade, quita y modifica archivos automaticamente para asegurar que tu copia de trabajo luce exactamente como lucia en la rama en la ultima confirmacion.
+
+<br/>
+
+<SideImage
+    url="/git-workshop/03/basic-branching-4.png"
+    alt="Diagrama de commits (4)"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    A continuacion, es momento de resolver el problema urgente.
+    Vamos a crear una nueva rama `hotfix`, sobre la que trabajar hasta resolverlo:
+
+    ```bash
+    git checkout -b hotfix
+    Switched to a new branch 'hotfix'
+    vim index.html
+    git commit -am 'fixed the broken email address'
+    [hotfix 1fb7853] fixed the broken email address
+     1 file changed, 2 insertions(+)
+    ```
+
+    Ahora puedes incorporar los cambios a la rama `master` para ponerlos en produccion.
+</SideImage>
+
+---
+
+Para _fusionar_ se utiliza el comando `git merge`:
+```bash
+git checkout master         # Cambiar a la rama master
+git merge hotfix            # Fusionar hotfix a la rama actual
+Updating f42c576..3a0874c
+Fast-forward
+ index.html | 2 ++
+ 1 file changed, 2 insertions(+)
+```
+
+Notar que se utilizo el metodo `Fast-forward`, esto significa que mueve los _commits_ divergentes de la rama `hotfix`
+adelante de los commits de la rama `master`. Comparemos _Antes de fusionar_ vs _Despues de fusionar_:
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+		{ alt: 'Diagrama de commits (4)', url: '/git-workshop/03/basic-branching-4.png' },
+		{ alt: 'Diagrama de commits (5)', url: '/git-workshop/03/basic-branching-5.png' },
+	]}
+/>
+
+---
+
+Luego de haber resuelto el problema urgente, podemos volver donde estabamos trabajando.
+Pero antes, eliminemos la rama `hotfix` que ya no nos va a servir mas. Para esto usamos `git branch -d`:
+
+```bash
+git branch -d hotfix
+Deleted branch hotfix (3a0874c).
+```
+
+<SideImage
+    url="/git-workshop/03/basic-branching-6.png"
+    alt="Diagrama de commits (6)"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-4"
+>
+    Ahora volvamos al trabajo:
+    ```bash
+    git checkout iss53 # Cambiar a iss53
+    Switched to branch "iss53"
+    vim index.html # Editar index.html
+    git commit -am 'finished the new footer [issue 53]'
+    [iss53 ad82d7a] finished the new footer [issue 53]
+    1 file changed, 1 insertion(+)
+    ```
+
+    Pero hay un detalle, los cambios fusionados de `hotfix` no existen en la rama `iss53`.
+</SideImage>
+
+---
+
+## Procedimientos Basicos de _Fusion_
+
+Supongamos que tu trabajo con el problema `#53` ya esta completo y listo para fusionarlo.
+Asi que procedemos a utilizar `git merge`:
+
+```bash
+git checkout master # Cambiar a master
+Switched to branch 'master'
+git merge iss53 # Fusionar iss53 a la rama actual
+Merge made by the 'recursive' strategy.
+index.html |    1 +
+1 file changed, 1 insertion(+)
+```
+
+Esta _fusion_ es diferente a la de `hotfix -> master`, como podemos ver esta utiliza `recursive` en vez de `fast-forward`.
+Dado que la confirmacion en la rama actual no es ancestro directo de la rama que pretendemos fusionar,
+_Git_ tiene cierto trabajo extra que hacer.
+
+---
+
+En lugar de simplemente avanzar la referencia de la rama, _Git_ crea una _snapshot_ resultante de la fusion,
+y crea automaticamente un nuevo _commit_ que apunta a ella.
+A este proceso se le conoce como **merge commit** (_fusion confirmada_) y su particularidad es que tiene mas de un padre.
+
+<ImageSet
+	layout="flex"
+	containerTw="my-4 justify-center"
+	imageTw="max-w-lg"
+	aspect="wide"
+	fit="contain"
+	images={[
+	    { alt: 'Diagrama de commits (1) (merge)', url: '/git-workshop/03/basic-merging-1.png' },
+		{ alt: 'Diagrama de commits (2) (merge)', url: '/git-workshop/03/basic-merging-2.png' },
+	]}
+/>
+
+_Git_ automaticamente determina cual es el mejor ancestro comun para realizar la fusion.
+Ahora que todo tu trabajo ya esta fusionado, podemos eliminar `iss53` con:
+
+```bash
+git branch -d iss53
+```
+
+---
+
+## Principales Conflictos que pueden surgir en las _fusiones_
+
+En ocasiones, los procesos de fusion no suelen ser fluidos.
+Si hiciste cambios en la misma parte de un archivo en las dos ramas distintas que pretendes fusionar,
+_Git_ no sera capaz de fusionarlas directamente y producira un **conflicto**:
+
+```bash
+git merge iss53
+Auto-merging index.html
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+_Git_ pausa la fusion y espera a que resuelvas el conflicto.
+Puedes ver que archivos estan sin fusionar en cualquier momento tras un conflicto con `git status`:
+
+```bash
+git status
+On branch master
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+
+Unmerged paths:
+  (use "git add <file>..." to mark resolution)
+
+    both modified:      index.html
+
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+
+---
+
+### Como leer un conflicto
+
+_Git_ añade marcadores de resolucion de conflictos en los archivos con problemas.
+El archivo afectado tendra una seccion similar a esta:
+
+```
+<<<<<<< HEAD:index.html
+<div id="footer">contact : email.support@github.com</div>
+=======
+<div id="footer">
+  please contact us at support@github.com
+</div>
+>>>>>>> iss53:index.html
+```
+
+- La seccion entre `<<<<<<< HEAD` y `=======` es la version en tu rama actual (`master`).
+- La seccion entre `=======` y `>>>>>>> iss53` es la version de la rama que estas fusionando.
+
+---
+
+### Resolver el conflicto
+
+Debes elegir una de las dos versiones, o combinarlas manualmente.
+Por ejemplo, podrias reemplazar todo el bloque anterior por esto:
+
+```html
+<div id="footer">
+  please contact us at email.support@github.com
+</div>
+```
+
+Una vez resueltos todos los conflictos, ejecuta `git add` sobre cada archivo afectado
+para marcarlo como resuelto. Luego confirma la fusion:
+
+```bash
+git add index.html
+git commit
+```
+
+> _Git_ sabe que archivos tenian conflictos y los marca automaticamente al abrir el editor de confirmacion.
+
+---
+
+## Gestion de Ramas
+
+El comando `git branch` tiene mas funciones que solo crear y borrar ramas.
+Si lo ejecutas sin parametros, obtienes una lista de todas las ramas del proyecto:
+
+```bash
+git branch
+  iss53
+* master
+  testing
+```
+
+El caracter `*` delante de `master` indica la rama activa en este momento (la que apunta `HEAD`).
+Si haces un _commit_ ahora, esa sera la rama que avance.
+Para ver el ultimo _commit_ de cada rama, puedes usar `git branch -v`:
+
+```bash
+git branch -v
+  iss53    93b412c fix javascript issue
+* master   7a98805 Merge branch 'iss53'
+  testing  782fd34 add scott to the author list in the readmes
+```
+
+---
+
+Otra opcion util es filtrar las ramas segun si ya han sido fusionadas o no con la rama activa.
+Para ver las ramas ya fusionadas con la rama actual:
+
+```bash
+git branch --merged
+  iss53
+* master
+```
+
+La rama `iss53` aparece porque ya fue fusionada. Las ramas que **no** llevan el `*` delante
+pueden eliminarse sin problemas con `git branch -d`, ya que su contenido ya esta incorporado.
+Para ver las ramas con trabajo aun sin fusionar:
+
+```bash
+git branch --no-merged
+  testing
+```
+
+Si intentas borrar una rama con trabajo sin fusionar, _Git_ te dara un error:
+
+```bash
+git branch -d testing
+error: The branch 'testing' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D testing'.
+```
+
+Si realmente deseas borrarla y perder ese trabajo, puedes forzar el borrado con `git branch -D`.
+
+---
+
+## Recursos
+
+- [Pro Git - Cap. 3](https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell): Desde `3.1` a `3.3`
