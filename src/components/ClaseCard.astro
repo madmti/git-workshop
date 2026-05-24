@@ -1,7 +1,6 @@
 ---
 interface Props {
-	numero: number;
-	tipo: 'clase' | 'extra';
+	label: string;
 	title: string;
 	description: string;
 	duracion: string;
@@ -10,9 +9,7 @@ interface Props {
 	slug: string;
 }
 
-const { numero, tipo, title, description, duracion, dificultad, draft, slug } = Astro.props;
-
-const labelPrefix = tipo === 'extra' ? 'Extra' : 'Clase';
+const { label, title, description, duracion, dificultad, draft, slug } = Astro.props;
 
 const dificultadColor = {
 	facil: 'text-green-400',
@@ -29,7 +26,7 @@ const dificultadColor = {
 		>
 			<div class="flex items-center justify-between">
 				<span class="font-mono text-xs tracking-widest text-content/40 uppercase">
-					{labelPrefix}&nbsp;{String(numero).padStart(2, '0')}
+					{label}
 				</span>
 				<span class="font-mono text-xs tracking-widest text-content/30 uppercase">[ DRAFT ]</span>
 			</div>
@@ -47,7 +44,7 @@ const dificultadColor = {
 		>
 			<div class="flex items-center justify-between">
 				<span class="font-mono text-xs tracking-widest text-content/40 uppercase">
-					{labelPrefix}&nbsp;{String(numero).padStart(2, '0')}
+					{label}
 				</span>
 			</div>
 			<h2 class="text-lg font-bold text-content transition-colors group-hover:text-primary">

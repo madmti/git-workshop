@@ -4,25 +4,14 @@ import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
 	const entries = await getCollection('clases', (entry) => !entry.data.draft);
-	const clases = entries
-		.filter((entry) => entry.data.tipo === 'clase')
-		.sort((a, b) => a.data.orden - b.data.orden)
-		.map((entry, index) => ({ entry, numero: index + 1 }));
-	const extras = entries
-		.filter((entry) => entry.data.tipo === 'extra')
-		.sort((a, b) => a.data.orden - b.data.orden)
-		.map((entry, index) => ({ entry, numero: index + 1 }));
-	const cards = [...clases, ...extras];
-
-	return cards.map(({ entry, numero }) => ({
+	return entries.map((entry) => ({
 		params: { slug: entry.id },
-		props: { entry, numero }
+		props: { entry }
 	}));
 }
 
-const { entry, numero } = Astro.props;
+const { entry } = Astro.props;
 const { Content } = await render(entry);
-const labelPrefix = entry.data.tipo === 'extra' ? 'Extra' : 'Clase';
 ---
 
 <Layout>
@@ -59,7 +48,7 @@ const labelPrefix = entry.data.tipo === 'extra' ? 'Extra' : 'Clase';
 				<div class="flex flex-wrap items-end justify-between gap-4">
 					<div>
 						<p class="mb-1 font-mono text-xs tracking-widest text-content/40 uppercase">
-							{labelPrefix}&nbsp;{String(numero).padStart(2, '0')}
+							{entry.data.label}
 						</p>
 						<h1 class="text-3xl font-bold text-primary">{entry.data.title}</h1>
 					</div>

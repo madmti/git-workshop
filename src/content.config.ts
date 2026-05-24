@@ -8,7 +8,7 @@ const clases = defineCollection({
 		title: z.string(),
 		description: z.string(),
 		orden: z.number(),
-		tipo: z.enum(['clase', 'extra']),
+		label: z.string(),
 		duracion: z.string(),
 		dificultad: z.enum(['facil', 'media', 'dificil']),
 		recursos: z
