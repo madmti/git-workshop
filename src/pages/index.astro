@@ -42,17 +42,19 @@ const entries = (await getCollection('clases')).sort((a, b) => a.data.orden - b.
 				[ {entries.length} capsulas ]
 			</h2>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-				{entries.map((entry) => (
-					<ClaseCard
-						label={entry.data.label}
-						title={entry.data.title}
-						description={entry.data.description}
-						duracion={entry.data.duracion}
-						dificultad={entry.data.dificultad}
-						draft={entry.data.draft}
-						slug={entry.id}
-					/>
-				))}
+				{
+					entries.map((entry) => (
+						<ClaseCard
+							label={entry.data.label}
+							title={entry.data.title}
+							description={entry.data.description}
+							duracion={entry.data.duracion}
+							dificultad={entry.data.dificultad}
+							draft={entry.data.draft}
+							slug={entry.id}
+						/>
+					))
+				}
 			</div>
 		</section>
 	</main>
