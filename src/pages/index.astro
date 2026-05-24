@@ -3,7 +3,16 @@ import Layout from '@/layouts/Layout.astro';
 import ClaseCard from '@/components/ClaseCard.astro';
 import { getCollection } from 'astro:content';
 
-const clases = (await getCollection('clases')).sort((a, b) => a.data.clase - b.data.clase);
+const entries = await getCollection('clases');
+const clases = entries
+	.filter((entry) => entry.data.tipo === 'clase')
+	.sort((a, b) => a.data.orden - b.data.orden);
+const extras = entries
+	.filter((entry) => entry.data.tipo === 'extra')
+	.sort((a, b) => a.data.orden - b.data.orden);
+
+const clasesConNumero = clases.map((entry, index) => ({ entry, numero: index + 1 }));
+const extrasConNumero = extras.map((entry, index) => ({ entry, numero: index + 1 }));
 ---
 
 <Layout>
@@ -43,20 +52,45 @@ const clases = (await getCollection('clases')).sort((a, b) => a.data.clase - b.d
 			</h2>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				{
-					clases.map((clase) => (
+					clasesConNumero.map(({ entry, numero }) => (
 						<ClaseCard
-							clase={clase.data.clase}
-							title={clase.data.title}
-							description={clase.data.description}
-							duracion={clase.data.duracion}
-							dificultad={clase.data.dificultad}
-							draft={clase.data.draft}
-							slug={clase.id}
+							numero={numero}
+							tipo={entry.data.tipo}
+							title={entry.data.title}
+							description={entry.data.description}
+							duracion={entry.data.duracion}
+							dificultad={entry.data.dificultad}
+							draft={entry.data.draft}
+							slug={entry.id}
 						/>
 					))
 				}
 			</div>
 		</section>
+
+		{
+			extras.length > 0 && (
+				<section class="mx-auto mt-12 max-w-6xl">
+					<h2 class="mb-8 font-mono text-xs tracking-widest text-content/40 uppercase">
+						[ {extras.length} extras ]
+					</h2>
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						{extrasConNumero.map(({ entry, numero }) => (
+							<ClaseCard
+								numero={numero}
+								tipo={entry.data.tipo}
+								title={entry.data.title}
+								description={entry.data.description}
+								duracion={entry.data.duracion}
+								dificultad={entry.data.dificultad}
+								draft={entry.data.draft}
+								slug={entry.id}
+							/>
+						))}
+					</div>
+				</section>
+			)
+		}
 	</main>
 </Layout>
 

@@ -7,7 +7,8 @@ const clases = defineCollection({
 	schema: z.object({
 		title: z.string(),
 		description: z.string(),
-		clase: z.number(),
+		orden: z.number(),
+		tipo: z.enum(['clase', 'extra']),
 		duracion: z.string(),
 		dificultad: z.enum(['facil', 'media', 'dificil']),
 		recursos: z

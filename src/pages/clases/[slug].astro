@@ -3,15 +3,26 @@ import Layout from '@/layouts/Layout.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
-	const clases = await getCollection('clases', (entry) => !entry.data.draft);
-	return clases.map((entry) => ({
+	const entries = await getCollection('clases', (entry) => !entry.data.draft);
+	const clases = entries
+		.filter((entry) => entry.data.tipo === 'clase')
+		.sort((a, b) => a.data.orden - b.data.orden)
+		.map((entry, index) => ({ entry, numero: index + 1 }));
+	const extras = entries
+		.filter((entry) => entry.data.tipo === 'extra')
+		.sort((a, b) => a.data.orden - b.data.orden)
+		.map((entry, index) => ({ entry, numero: index + 1 }));
+	const cards = [...clases, ...extras];
+
+	return cards.map(({ entry, numero }) => ({
 		params: { slug: entry.id },
-		props: { entry }
+		props: { entry, numero }
 	}));
 }
 
-const { entry } = Astro.props;
+const { entry, numero } = Astro.props;
 const { Content } = await render(entry);
+const labelPrefix = entry.data.tipo === 'extra' ? 'Extra' : 'Clase';
 ---
 
 <Layout>
@@ -48,7 +59,7 @@ const { Content } = await render(entry);
 				<div class="flex flex-wrap items-end justify-between gap-4">
 					<div>
 						<p class="mb-1 font-mono text-xs tracking-widest text-content/40 uppercase">
-							Clase {String(entry.data.clase).padStart(2, '0')}
+							{labelPrefix}&nbsp;{String(numero).padStart(2, '0')}
 						</p>
 						<h1 class="text-3xl font-bold text-primary">{entry.data.title}</h1>
 					</div>
