@@ -1,25 +1,430 @@
 ---
 title: "Internals pt.1 — El modelo de objetos"
-description: "Explora la arquitectura interna de Git y aprende a inspeccionar y leer blobs, trees, commits y tags directamente dentro de .git/objects/ usando comandos como cat-file."
+description: "Descubre como trabaja Git internamente y los tipos de objetos que maneja: blob, tree, commit."
 orden: 3
 label: "CLASE 03"
-duracion: "2h"
+duracion: "40m"
 dificultad: dificil
 recursos:
-  - titulo: "Pro Git — Cap. 10.2: Git Objects"
-    url: https://git-scm.com/book/en/v2/Git-Internals-Git-Objects
-  - titulo: "Git Internals PDF"
-    url: https://github.com/pluralsight/git-internals-pdf/releases/tag/v2.0
-draft: true
+  - titulo: "Pro Git — Cap. 10: Git Internals"
+    url: https://git-scm.com/book/es/v2/Los-entresijos-internos-de-Git-Fontaner%C3%ADa-y-porcelana
+draft: false
 ---
 
 import ImageSet from 'MDX/ImageSet.astro';
+import SideImage from 'MDX/SideImage.astro';
 import Image from 'MDX/Image.astro';
 import FullTitle from 'MDX/FullTitle.astro';
 
+{/*
+==========================================================
+10.1 Fontanería y porcelana
+==========================================================
+*/}
+
 <FullTitle>
     <span class="flex flex-col items-center">
-        <p></p>
-        <small class="text-lg mt-2"></small>
+        <p>**Git** Internals</p>
+        <small class="text-lg mt-2">_Fontaneria y Porcelana_</small>
     </span>
 </FullTitle>
+
+---
+
+## Fontaneria y Porcelana
+
+_Git_ es fundamentalmente un sistema de archivos de contenido localizable con una interfaz de usuario de _VCS_ escrita sobre el.
+
+<br/>
+
+El libro _Git Pro_ ha hablado de como utilizar _Git_ con unos 30 verbos, tales como `checkout`, `branch`, `remote`, etc.
+Pero debido al origen de _Git_ como una caja de herramientas para un VCS en lugar de como un sistema completo y amigable,
+existen varios verbos que realizan tareas de bajo nivel y que fueron disenados para ser utilizados de forma encadenada al estilo UNIX o para ser utilizados en scripts.
+Estos comandos son conocidos como los **comandos de fontaneria** (_plumbing_),
+mientras que los comandos mas amigables son conocidos como los **comandos de porcelana** (_porcelain_).
+
+<br/>
+
+Los primeros nueve capitulos del libro _Git Pro_ tratan casi exclusivamente los comandos de porcelana.
+En las clases de _Git Internals_ trataremos los comandos de fontaneria, que te daran acceso a los recursos internos de _Git_
+y te ayudaran a comprender como y por que _Git_ hace lo que hace.
+Son mas utiles como bloques de construccion para nuevas herramientas y scripts personalizados.
+
+---
+
+## La carpeta `.git/`
+
+Cuando ejecutas `git init` sobre una carpeta, _Git_ crea la carpeta auxiliar `.git/`.
+Esta es la carpeta donde se ubica practicamente todo lo almacenado y manipulado por _Git_.
+Si deseas hacer una copia de seguridad de tu repositorio, con solo copiar esta carpeta ya tienes tu copia completa.
+
+```bash
+ls -F1
+HEAD
+config*
+description
+hooks/
+info/
+objects/
+refs/
+```
+
+- `description` — usado solo en _GitWeb_, no necesitas preocuparte por el.
+- `config` — contiene las opciones de configuracion especificas del proyecto.
+- `info/` — guarda un archivo global de exclusion con patrones a ignorar ademas de los presentes en `.gitignore`.
+- `hooks/` — contiene los scripts de enganche, tanto del lado cliente como del servidor.
+
+<br/>
+
+Las cuatro entradas importantes son:
+
+- `HEAD` — apunta a la rama que tengas activa en este momento.
+- `index` — donde _Git_ almacena la informacion sobre tu area de preparacion (_staging area_).
+- `objects/` — guarda el contenido de tu base de datos.
+- `refs/` — guarda las referencias a las confirmaciones (_commits_).
+
+<br/>
+
+Estas cuatro entradas forman el nucleo de _Git_. Las iremos viendo en detalle a lo largo de estas clases.
+
+---
+
+{/*
+==========================================================
+10.2 os objetos Git
+==========================================================
+*/}
+
+## Los objetos _Git_
+
+_Git_ es un sistema de archivos de contenido localizable. Lo que significa que en el nucleo de _Git_ hay un simple almacen de datos clave-valor.
+Puedes insertar cualquier tipo de contenido en el, y te devolvera una clave que puedes usar para recuperar ese contenido cuando quieras.
+
+---
+
+### Los objetos _Blob_
+
+Para ver esto en accion, usaremos el comando de fontaneria `git hash-object`,
+que toma un contenido, lo almacena en la carpeta `.git` y devuelve la clave unica con la que fue guardado:
+
+```bash
+echo 'test content' | git hash-object -w --stdin
+d670460b4b4aece5915caf5c68d12f560a9fe3e4
+```
+
+La opcion `-w` le indica que almacene el objeto, sin ella solo calcularia la clave.
+La opcion `--stdin` le indica que lea el contenido desde la entrada estandar.
+El valor devuelto es un _checksum_ SHA-1 de 40 caracteres. Puedes ver el archivo creado en:
+
+```bash
+find .git/objects -type f
+.git/objects/d6/70460b4b4aece5915caf5c68d12f560a9fe3e4
+```
+
+_Git_ usa los dos primeros caracteres como nombre de carpeta y los 38 restantes como nombre de archivo.
+
+---
+
+Para recuperar el contenido, usas `git cat-file` con la opcion `-p` (pretty-print):
+
+```bash
+git cat-file -p d670460b4b4aece5915caf5c68d12f560a9fe3e4
+test content
+```
+
+Tambien puedes preguntar por el tipo del objeto con `-t`:
+
+```bash
+git cat-file -t d670460b4b4aece5915caf5c68d12f560a9fe3e4
+blob
+```
+
+Esto es un objeto de tipo **blob** (_binary large object_): el tipo que _Git_ usa para almacenar el contenido de los archivos.
+Los blobs almacenan solo el contenido, sin nombre de archivo ni metadata.
+
+---
+
+### Los objetos _Tree_
+
+<SideImage
+    url="/git-workshop/03/data-model-1.png"
+    alt="Modelo de datos de Git: tree con blobs y subtrees"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+    Los objetos **tree** resuelven el problema del nombre de archivo y permiten almacenar grupos de archivos juntos.
+    Un _tree_ es similar a un directorio en UNIX: puede contener referencias a blobs u otros trees.
+
+    ```bash
+    git cat-file -p master^{tree}
+    100644 blob a906cb2a4a904a152e80877d4088654daad0c859      README
+    100644 blob 8f94139338f9404f26296befa88755fc2598c289      Rakefile
+    040000 tree 99f1a6d12cb4b6f19c8655fca46c3ecf317074e0      lib
+    ```
+
+    Cada linea tiene: modo del archivo, tipo de objeto, SHA-1, y nombre.
+</SideImage>
+
+<br />
+
+La sentencia `master^{tree}` indica el objeto _tree_ apuntado por el ultimo _commit_ de _master_.
+El modo indica los permisos y tipo de objeto UNIX.
+Por ejemplo:
+- `100644`: Archivo normal no ejecutable con permisos `rw-r--r--`.
+- `040000`: Directorio/carpeta.
+- `100755`: Archivo ejecutable.
+- `120000`: Enlace simbolico.
+
+---
+
+_Git_ crea un _tree_ a partir del estado de tu area de preparacion (_staging area_) o indice (_index_).
+Para crear un _tree_ manualmente, podemos usar `update-index` actualiza al _area de preparacion_ para los archivos con seguimiento (_tracked_).
+
+```bash
+git update-index --add --cacheinfo 100644 \
+  83baae61804e65cc73a7201a7252750c76066a30 test.txt
+```
+
+Usamos `--add` porque el archivo que queremos agregar no esta bajo seguimiento (_untracked_).
+La opcion `--cacheinfo` se usa cuando el archivo esta en la base de datos de _Git_ pero no en el directorio de trabajo.
+<br/>
+Luego especificamos el _modo_, _checksum_ y _nombre del archivo_:
+
+- El _modo_ indica que tipo de objeto es.
+- El _checksum_ es la _clave_ para obtener el contenido del archivo (valor) en la base de datos _Git_.
+- El _nombre del archivo_ simplemente le dice a _Git_ donde colocar el archivo y como llamarlo.
+
+---
+
+Luego podemos usar `write-tree` para escribir el _area de preparacion_ a un objeto _tree_:
+
+```bash
+git write-tree # Escribir a un objeto tree
+d8329fc1cc938780ffdd9f94e0d364e0ea74f579
+# ---
+git cat-file -p d8329fc1cc938780ffdd9f94e0d364e0ea74f579 # Ver el contenido del objeto
+100644 blob 83baae61804e65cc73a7201a7252750c76066a30 test.txt
+```
+
+> Cuando pedimos el contenido del objeto _tree_, nos devuelve el objeto _blob_ que esta dentro de nuestro objeto _tree_.
+
+<br/>
+
+Tambien podemos comprobar si realmente es un objeto _tree_:
+
+```bash
+git cat-file -t d8329fc1cc938780ffdd9f94e0d364e0ea74f579
+tree
+```
+
+---
+
+### Ejemplo
+
+Ahora crearemos un nuevo arbol con una segunda version de `test.txt` y un nuevo archivo `new.txt`:
+
+```bash
+echo 'new file' > new.txt # Crear new.txt
+git update-index test.txt # Actualizar el area de preparacion para test.txt
+git update-index --add new.txt # Agregar new.txt al area de preparacion
+```
+
+Escribimos el _area de preparacion_ a un objeto _tree_:
+
+```bash
+git write-tree
+0155eb4229851634a0f03eb265b69f5a2d56f341
+```
+
+Comprobamos su contenido:
+
+```bash
+git cat-file -p 0155eb4229851634a0f03eb265b69f5a2d56f341
+100644 blob fa49b077972391ad58037050f2a75f74e3671e92 new.txt
+100644 blob 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a test.txt
+```
+
+---
+
+Ahora simplemente por probar, incluiremos el _tree_ del ejemplo anterior en el _tree_ que acabamos de crear.
+Usamos `read-tree` que agrega el _tree_ al _area de preparacion_, y la opcion `--prefix` para tratarlo como si fuera una subcarpeta.
+En la opcion `--prefix` indicamos el nombre del _subdirectorio_ y el _checksum_ del _tree_.
+
+```bash
+git read-tree --prefix=bak d8329fc1cc938780ffdd9f94e0d364e0ea74f579 # Agregar el tree bajo el nombre de "bak"
+git write-tree # Escribir el area de preparacion a un arbol
+3c4e9cd789d88d8d89c1073707c3585e41b0e614
+```
+
+<SideImage
+    url="/git-workshop/03/data-model-2.png"
+    alt="Modelo de datos de Git: tree con subtree bak"
+    fit="contain"
+    aspect="wide"
+    side="right"
+    imageTw="max-w-2xl my-auto"
+>
+   Ahora comprobemos que tiene dentro nuestro nuevo objeto _tree_:
+
+    ```bash
+    git cat-file -p 3c4e9cd789d88d8d89c1073707c3585e41b0e614
+    040000 tree d8329fc1cc938780ffdd9f94e0d364e0ea74f579      bak
+    100644 blob fa49b077972391ad58037050f2a75f74e3671e92      new.txt
+    100644 blob 1f7a7a472abf3dd9643fd615f6737e589b58f5f8      test.txt
+    ```
+</SideImage>
+
+---
+
+### Los objetos _Commit_
+
+Imaginemos que tienes tres _trees_ que representan diferentes _snapshots_ del proyecto, pero el problema sigue siendo el mismo:
+debes recordar los tres valores _checksum SHA-1_ para poder acceder a ellas.
+Tampoco tienes informacion sobre quien guardo las _snapshots_, cuando, o por que. Para eso existen los objetos **commit**.
+
+<br />
+
+Para crear un objeto _commit_ manualmente, usas `git commit-tree` pasando el _checksum SHA-1_ del _tree_ y, opcionalmente, el _commit_ padre:
+
+```bash
+echo 'first commit' | git commit-tree d8329f
+fdf4fc3344e67ab068f836878b6c4951e3b15f3d
+```
+
+Si inspeccionas el objeto:
+
+```bash
+git cat-file -p fdf4fc3
+tree d8329fc1cc938780ffdd9f94e0d364e0ea74f579
+author Scott Chacon <schacon@gmail.com> 1243040974 -0700
+committer Scott Chacon <schacon@gmail.com> 1243040974 -0700
+#
+first commit
+```
+
+Un objeto _commit_ contiene:
+- El _tree_ de nivel superior del proyecto en ese momento.
+- Los _commits_ padre (ninguno en este ejemplo).
+- El autor y committer con su fecha.
+- El mensaje del _commit_.
+
+---
+
+Puedes encadenar commits pasando el _checksum SHA-1_ del anterior como padre:
+
+```bash
+echo 'second commit' | git commit-tree 0155eb -p fdf4fc3
+cac0cab538b970a37ea1e769cbbde608743bc96d
+
+echo 'third commit'  | git commit-tree 3c4e9c -p cac0cab
+1a410efbd13591db07496601ebc7a059dd55cfe9
+```
+
+---
+
+Ahora si ejecutas `git log` sobre el ultimo _checksum SHA-1_, veras un historial real:
+
+```bash
+git log --stat 1a410e
+commit 1a410efbd13591db07496601ebc7a059dd55cfe9
+Author: Scott Chacon <schacon@gmail.com>
+Date:   Fri May 22 18:15:24 2009 -0700
+#
+	third commit
+#
+ bak/test.txt | 1 +
+ 1 file changed, 1 insertion(+)
+#
+commit cac0cab538b970a37ea1e769cbbde608743bc96d
+Author: Scott Chacon <schacon@gmail.com>
+Date:   Fri May 22 18:14:29 2009 -0700
+#
+	second commit
+#
+ new.txt  | 1 +
+ test.txt | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+#
+commit fdf4fc3344e67ab068f836878b6c4951e3b15f3d
+Author: Scott Chacon <schacon@gmail.com>
+Date:   Fri May 22 18:09:34 2009 -0700
+#
+    first commit
+#
+ test.txt | 1 +
+ 1 file changed, 1 insertion(+)
+```
+
+---
+
+Esto es exactamente lo que _Git_ hace cuando ejecutas `git add` y `git commit`:
+almacena _blobs_ de los archivos modificados, actualiza el _area de preparacion_, escribe los _trees_,
+y crea los objetos _commit_ con los _checksums SHA-1_ de los _trees_ de nivel superior y los _commits_ padre.
+
+<br/>
+
+Ahora comprobemos que todos los objetos _blob_, _tree_ y _commit_ hasta el momento fueron guardados por _Git_ en `.git/objects`:
+
+```bash
+find .git/objects -type f
+.git/objects/01/55eb4229851634a0f03eb265b69f5a2d56f341 # tree 2
+.git/objects/1a/410efbd13591db07496601ebc7a059dd55cfe9 # commit 3
+.git/objects/1f/7a7a472abf3dd9643fd615f6da379c4acb3e3a # test.txt v2
+.git/objects/3c/4e9cd789d88d8d89c1073707c3585e41b0e614 # tree 3
+.git/objects/83/baae61804e65cc73a7201a7252750c76066a30 # test.txt v1
+.git/objects/ca/c0cab538b970a37ea1e769cbbde608743bc96d # commit 2
+.git/objects/d6/70460b4b4aece5915caf5c68d12f560a9fe3e4 # 'test content'
+.git/objects/d8/329fc1cc938780ffdd9f94e0d364e0ea74f579 # tree 1
+.git/objects/fa/49b077972391ad58037050f2a75f74e3671e92 # new.txt
+.git/objects/fd/f4fc3344e67ab068f836878b6c4951e3b15f3d # commit 1
+```
+
+---
+
+Hasta ahora deberiamos tener algo como esto:
+
+<br />
+
+<Image
+    url="/git-workshop/03/data-model-3.png"
+    alt="Modelo de datos completo: commits apuntando a trees y blobs"
+    fit="contain"
+    aspect="wide"
+    tw="max-w-4xl mx-auto"
+/>
+
+---
+
+### Como Git almacena los objetos internamente
+
+Internamente, _Git_ construye una cabecera comenzando por el tipo de objeto, seguido del tamano del contenido y un byte nulo.
+
+```py
+content = "what is up, doc?"
+header = f"blob {len(content)}\x00"
+```
+
+Luego concatena la cabecera con el contenido original para calcular el _checksum SHA-1_, comprime todo con `zlib`,
+
+```py
+store = header + content
+sha1 = checksum(store)
+zlib_content = zlib.compress(store)
+```
+
+y escribe el resultado en disco usando los dos primeros caracteres del _checksum SHA-1_ como carpeta y los 38 restantes como nombre de archivo.
+
+```py
+path = ".git/objects" + sha1[0:2] + "/" + sha1[2:38]
+with open(path) as file: file.write(zlib_content)
+```
+
+> Todos los objetos _Git_ (blob, tree, commit, tag) se almacenan de la misma forma. La unica diferencia es que sus cabeceras comienzan con un tipo diferente: `blob`, `tree`, `commit` o `tag`.
+
+---
+
+## Recursos
+
+- [Pro Git - Cap. 10](https://git-scm.com/book/es/v2/Los-entresijos-internos-de-Git-Fontaner%C3%ADa-y-porcelana): Desde `10.1` a `10.2`
