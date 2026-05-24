@@ -8,20 +8,213 @@ dificultad: dificil
 recursos:
   - titulo: "Pro Git — Cap. 10.3: Git References"
     url: https://git-scm.com/book/en/v2/Git-Internals-Git-References
-  - titulo: "Pro Git — Cap. 10.4: Packfiles"
-    url: https://git-scm.com/book/en/v2/Git-Internals-Packfiles
-  - titulo: "Git Internals PDF"
-    url: https://github.com/pluralsight/git-internals-pdf/releases/tag/v2.0
-draft: true
+draft: false
 ---
 
 import ImageSet from 'MDX/ImageSet.astro';
+import SideImage from 'MDX/SideImage.astro';
 import Image from 'MDX/Image.astro';
 import FullTitle from 'MDX/FullTitle.astro';
 
+{/*
+==========================================================
+10.3 Referencias
+==========================================================
+*/}
+
 <FullTitle>
     <span class="flex flex-col items-center">
-        <p></p>
-        <small class="text-lg mt-2"></small>
+        <p>**Git** Internals</p>
+        <small class="text-lg mt-2">_Referencias, packfiles y refspec_</small>
     </span>
 </FullTitle>
+
+---
+
+## Referencias Git
+
+Puedes usar `git log 1a410e` para echar un vistazo a lo largo de toda tu historia, recorriendo y encontrando todos los objetos.
+Pero para ello necesitas recordar que el ultimo _commit_ es `1a410e`.
+
+<br/>
+
+En _Git_, esto es lo que se conoce como "referencias" o "refs",
+en la carpeta `.git/refs` puedes encontrar archivos con valores _checksum SHA-1_
+y nombres simples que puedes usar en lugar de esos strings largos de _checksums_.
+En el proyecto actual, la carpeta aun no contiene archivos:
+
+```bash
+find .git/refs
+.git/refs
+.git/refs/heads
+.git/refs/tags
+find .git/refs -type f
+```
+
+---
+
+Para crear una nueva referencia que te sirva de ayuda para recordar cual es tu ultimo _commit_ es tan simple como:
+
+```bash
+echo "1a410efbd13591db07496d4f82dfc14aad14979" > .git/refs/heads/master
+```
+
+A partir de ese momento puedes usar esa referencia en lugar del valor  _checksum SHA-1_:
+
+```bash
+git log --pretty=oneline master # historial en una linea para la referencia "master"
+1a410efbd13591db07496d4f82dfc14aad14979 third commit
+cac0cab538b970a346d349e0d0e4196f5f3b1955 second commit
+fdf4fc3344e67ab068f836878b6c4951e3b15f3d first commit
+```
+
+---
+
+No es conveniente editar directamente los archivos de referencias.
+_Git_ suministra un comando mucho mas seguro para hacer esto: `git update-ref`:
+
+```bash
+git update-ref refs/heads/master 1a410efbd13591db07496d4f82dfc14aad14979
+```
+
+Esto es basicamente lo que es una rama en _Git_:
+un simple puntero o referencia a la cabeza de una linea de trabajo.
+Para crear una rama nueva desde el segundo _commit_:
+
+```bash
+git update-ref refs/heads/test cac0ca # actualizar referencia con el nombre corto del checksum
+```
+
+Y la rama contendra unicamente trabajo desde esa confirmacion hacia atras.
+
+---
+
+<Image
+    url="/git-workshop/04/data-model-4.png"
+    alt="Objetos en la carpeta Git con referencias a las cabeceras de las ramas"
+    fit="contain"
+    aspect="wide"
+    tw="max-w-2xl mx-auto"
+/>
+
+<br/>
+
+> Cuando lanzas `git branch <nombre>`, _Git_ ejecuta internamente `git update-ref` para anadir el _checksum SHA-1_ del ultimo _commit_ de la rama en que te encuentras a cualquier nueva referencia que quieras crear.
+
+---
+
+## La CABEZA (_HEAD_)
+
+¿Como sabe _Git_ cual es el _checksum SHA-1_ del ultimo _commit_ cuando ejecutas `git branch <nombre>`?
+La respuesta es el archivo `HEAD`.
+
+<br/>
+
+El archivo `HEAD` es una referencia simbolica a la rama donde te encuentras en cada momento.
+A diferencia de una referencia normal, la referencia simbolica contiene un enlace a otra referencia en vez del valor _checksum SHA-1_ de un objeto.
+
+```bash
+cat .git/HEAD
+ref: refs/heads/master
+```
+
+Si lanzas `git checkout test`, _Git_ actualiza el archivo `.git/HEAD`:
+
+```bash
+cat .git/HEAD
+ref: refs/heads/test
+```
+
+Cuando lanzas `git commit`, se crea un nuevo objeto _commit_ teniendo como padre el _commit_ al que referencia en este momento el `HEAD`.
+Puedes leer y cambiar este archivo de forma segura con el comando `git symbolic-ref`:
+
+```bash
+git symbolic-ref HEAD
+refs/heads/master
+# ---
+git symbolic-ref HEAD refs/heads/test
+cat .git/HEAD
+ref: refs/heads/test
+```
+
+> Pero no puedes fijar una referencia simbolica fuera de `refs/`. Ej: `git symbolic-ref HEAD test` no funcionara.
+
+---
+
+## Etiquetas
+
+Las etiquetas funcionan de forma muy parecida a los _commits_,
+pero apuntan a un objeto de etiqueta en lugar de directamente a un _commit_.
+El objeto etiqueta contiene un marcador, una fecha, un mensaje y un enlace al _commit_ al que apunta.
+Es como una referencia permanente que siempre apunta al mismo _commit_.
+
+<br />
+
+Como vimos anteriormente en el [EXTRA 01](https://madmti.github.io/git-workshop/clases/09-extra/), hay dos tipos: **anotadas** y **ligeras**.
+Para crear una etiqueta ligera:
+
+```bash
+git update-ref refs/tags/v1.0 cac0cab538b970a346d349e0d0e4196f5f3b1955
+```
+
+---
+
+Para crear una etiqueta anotada, _Git_ crea un objeto etiqueta y luego escribe una referencia apuntando al objeto en lugar de directamente al _commit_.
+Puedes comprobarlo con `-a`:
+
+```bash
+git tag -a v1.1 1a410efbd13591db07496d4f82dfc14aad14979 -m "test tag"
+```
+
+El _checksum SHA-1_ del objeto creado:
+
+```bash
+cat .git/refs/tags/v1.1
+9585191f37f7b0fb9444511119c5069a8c2e6f28
+```
+
+Si ejecutas `git cat-file` sobre ese _checksum SHA-1_,
+veras que el objeto apunta a su vez al _checksum SHA-1_ del _commit_ etiquetado:
+
+```bash
+git cat-file -p 9585191f37f7b0fb9444511119c5069a8c2e6f28
+object 1a410efbd13591db07496d4f82dfc14aad14979
+type commit
+tag v1.1
+tagger Scott Chacon <schacon@gmail.com> Mon Mar 17 21:52:11 2008
+
+test tag
+```
+
+> El objeto etiqueta no necesita apuntar necesariamente a un _commit_,
+> puedes etiquetar cualquier tipo de objeto _Git_.
+
+---
+
+## Referencias a Remotos
+
+El tercer tipo de referencia que puedes observar es la referencia a un remoto.
+Si añades un remoto y envias datos a el, _Git_ almacenara en `.git/refs/remotes/<nombre>` el ultimo valor para cada rama presente en ese remoto.
+
+<br />
+
+Por ejemplo, si añades un remoto denominado `origin` y envias la rama `master`:
+
+```bash
+git remote add origin git@github.com:schacon/simplegit-progit.git
+git push origin master
+```
+
+Puedes confirmar cual es la rama `master` en el remoto `origin` revisando el archivo `.git/refs/remotes/origin/master`.
+
+<br />
+
+Las referencias a remotos son distintas de las ramas normales: _Git_ las trata como de solo lectura.
+Puedes hacer `git checkout` a una, pero _Git_ no actualizara `HEAD` hacia ella, de modo que nunca la actualizaras con un `git commit`.
+Actuan simplemente como marcadores del ultimo estado conocido de cada rama en cada servidor remoto declarado.
+
+---
+
+## Recursos
+
+- [Pro Git - Cap. 10](https://git-scm.com/book/en/v2/Git-Internals-Git-References): Desde `10.3` a `10.8`
