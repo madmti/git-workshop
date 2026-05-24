@@ -8,7 +8,7 @@ dificultad: facil
 recursos:
   - titulo: "Pro Git — Cap. 2.6: Etiquetado"
     url: https://git-scm.com/book/es/v2/Fundamentos-de-Git-Etiquetado
-draft: true
+draft: false
 ---
 
 import ImageSet from 'MDX/ImageSet.astro';
@@ -17,7 +17,170 @@ import FullTitle from 'MDX/FullTitle.astro';
 
 <FullTitle>
     <span class="flex flex-col items-center">
-        <p></p>
-        <small class="text-lg mt-2"></small>
+        <p>**Tags**</p>
+        <small class="text-lg mt-2">Etiquetado en Git</small>
     </span>
 </FullTitle>
+
+---
+
+## Etiquetado
+
+_Git_ permite etiquetar puntos especificos del historial como importantes.
+Esta funcionalidad se usa tipicamente para marcar versiones de lanzamiento (`v1.0`, `v2.0`, etc.).
+
+---
+
+## Listar Etiquetas
+
+Listar las etiquetas disponibles es sencillo:
+
+```bash
+git tag
+v1.0
+v1.1
+```
+
+Las etiquetas aparecen en orden alfabetico. Tambien puedes buscar etiquetas con un patron particular usando `-l`:
+
+```bash
+git tag -l "v1.8.5*"
+v1.8.5
+v1.8.5-rc0
+v1.8.5-rc1
+v1.8.5-rc2
+v1.8.5-rc3
+v1.8.5.1
+v1.8.5.2
+v1.8.5.3
+v1.8.5.4
+v1.8.5.5
+```
+
+---
+
+## Tipos de Etiquetas
+
+_Git_ utiliza dos tipos de etiquetas: **ligeras** y **anotadas**.
+- Una etiqueta **ligera** es simplemente un puntero a un _commit_ especifico, sin informacion adicional.
+- Una etiqueta **anotada** se guarda como un objeto completo en la base de datos de _Git_. Contiene el nombre del etiquetador, su correo electronico, la fecha, y un mensaje asociado. Pueden ser firmadas y verificadas con _GNU Privacy Guard_ (GPG). Si no necesitas toda esa informacion, puedes usar etiquetas ligeras.
+
+---
+
+## Etiquetas Anotadas
+
+Para crear una etiqueta anotada usas la opcion `-a` con un mensaje `-m`:
+
+```bash
+git tag -a v1.4 -m "mi version 1.4"
+git tag
+v0.1
+v1.3
+v1.4
+```
+
+Puedes ver la informacion de la etiqueta junto con el _commit_ al que apunta con `git show`:
+
+```bash
+git show v1.4
+tag v1.4
+Tagger: Ben Straub <ben@straubhome.net>
+Date:   Sat May 3 20:19:12 2014 -0700
+
+mi version 1.4
+
+commit ca82a6dff817ec66f44342007202690a93763949
+Author: Scott Chacon <schacon@gee-mail.com>
+Date:   Mon Mar 17 21:52:11 2008 -0700
+
+    changed the version number
+```
+
+El comando muestra la informacion del etiquetador, la fecha, el mensaje de la etiqueta, y luego la informacion del _commit_.
+
+---
+
+## Etiquetas Ligeras
+
+Para crear una etiqueta ligera simplemente no pasas las opciones `-a`, `-s` ni `-m`:
+
+```bash
+git tag v1.4-lw
+git tag
+v0.1
+v1.3
+v1.4
+v1.4-lw
+v1.5
+```
+
+Si ejecutas `git show` sobre una etiqueta ligera, no veras informacion adicional, solo los datos del _commit_:
+
+```bash
+git show v1.4-lw
+commit ca82a6dff817ec66f44342007202690a93763949
+Author: Scott Chacon <schacon@gee-mail.com>
+Date:   Mon Mar 17 21:52:11 2008 -0700
+
+    changed the version number
+```
+
+---
+
+## Etiquetado Tardio
+
+Tambien puedes etiquetar _commits_ del pasado. Supongamos que tu historial luce asi:
+
+```bash
+git log --pretty=oneline
+15027957951b64cf874c3557a0f3547bd83b3ff6 Merge branch 'experiment'
+a6b4c97498bd301d84096da251c98a07c7723e65 beginning write support
+...
+9fceb02d0ae598e95dc970b74767f19372d61af8 updated rakefile
+...
+```
+
+Si olvidaste etiquetar el _commit_ `updated rakefile` con `v1.2`, puedes hacerlo pasando el _checksum_ (o parte de el) al final:
+
+```bash
+git tag -a v1.2 9fceb02
+```
+
+---
+
+## Compartir Etiquetas
+
+Por defecto, `git push` no transfiere las etiquetas a los servidores remotos.
+Debes enviarlas explicitamente con `git push origin <etiqueta>`:
+
+```bash
+git push origin v1.5
+```
+
+Para enviar varias etiquetas a la vez, usa la opcion `--tags`:
+
+```bash
+git push origin --tags
+```
+
+Cuando alguien clone o haga `fetch` del repositorio, obtendra todas las etiquetas tambien.
+
+---
+
+## Sacar una Etiqueta
+
+No puedes hacer _checkout_ de una etiqueta directamente, ya que no es algo que puedas mover.
+Si quieres colocar en tu directorio de trabajo una version que coincida con una etiqueta, debes crear una rama nueva en esa etiqueta:
+
+```bash
+git checkout -b version2 v2.0.0
+Switched to a new branch 'version2'
+```
+
+Si haces cambios y confirmas, la rama `version2` avanzara y se alejara de la etiqueta `v2.0.0`, asi que ten esto en cuenta.
+
+---
+
+## Recursos
+
+- [Pro Git - Cap. 2](https://git-scm.com/book/es/v2/Fundamentos-de-Git-Etiquetado): Solo `2.6`
