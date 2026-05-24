@@ -15,7 +15,7 @@ const { Content } = await render(entry);
 ---
 
 <Layout>
-	<div class="flex h-screen flex-col overflow-hidden">
+	<div class="flex h-screen max-sm:h-svh flex-col overflow-hidden">
 		<!-- Header -->
 		<header id="page-header" class="shrink-0 border-b border-content/10 px-12 py-10 max-sm:px-6">
 			<div class="mx-auto max-w-6xl">
@@ -50,7 +50,7 @@ const { Content } = await render(entry);
 						<p class="mb-1 font-mono text-xs tracking-widest text-content/40 uppercase">
 							{entry.data.label}
 						</p>
-						<h1 class="text-3xl font-bold text-primary">{entry.data.title}</h1>
+						<h1 class="max-sm:text-lg! text-2xl font-bold text-primary">{entry.data.title}</h1>
 					</div>
 					<!-- Controles de modo + theme -->
 					<div class="flex flex-wrap items-center gap-4">
@@ -120,7 +120,7 @@ const { Content } = await render(entry);
 				<!-- Slide activo -->
 				<div
 					id="slides-viewport"
-					class="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-y-auto py-6 max-sm:px-6"
+					class="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-y-auto py-6 max-sm:px-6 lg:items-center"
 				>
 					<div id="slides-content" class="mdx-content h-full">
 						<!-- Contenido del slide actual se inyecta aquí por JS -->
@@ -131,11 +131,11 @@ const { Content } = await render(entry);
 				<div class="shrink-0 border-t border-content/10 px-12 py-4 max-sm:px-6">
 					<div class="mx-auto flex max-w-4xl items-center justify-between gap-4">
 						<!-- Dots -->
-						<div id="slides-dots" class="flex flex-wrap gap-2"></div>
+						<div id="slides-dots" class="flex flex-wrap gap-2 max-sm:gap-1"></div>
 
 						<!-- Contador + botones -->
 						<div class="flex items-center gap-4">
-							<span id="slides-counter" class="font-mono text-xs text-content/40"> 1 / 1 </span>
+							<span id="slides-counter" class="font-mono whitespace-nowrap text-xs text-content/40"> 1 / 1 </span>
 							<div class="flex gap-2">
 								<button
 									id="btn-prev"
@@ -401,7 +401,6 @@ const { Content } = await render(entry);
 
 	body.header-compact #mode-slides #slides-viewport {
 		display: flex;
-		align-items: center;
 	}
 
 	body.header-compact #mode-slides #slides-content {
