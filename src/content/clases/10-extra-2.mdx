@@ -1,0 +1,156 @@
+---
+title: "Refspec"
+description: "Comprende las especificaciones para las referencias remotas."
+orden: 6
+label: "EXTRA 02"
+duracion: "15m"
+dificultad: media
+recursos:
+  - titulo: "Pro Git - Cap. 10.5: Git Refspec"
+    url: https://git-scm.com/book/en/v2/Git-Internals-The-Refspec
+draft: false
+---
+
+import ImageSet from 'MDX/ImageSet.astro';
+import SideImage from 'MDX/SideImage.astro';
+import Image from 'MDX/Image.astro';
+import FullTitle from 'MDX/FullTitle.astro';
+
+{/*
+==========================================================
+10.5 Refspec
+==========================================================
+*/}
+
+<FullTitle>
+    <span class="flex flex-col items-center">
+        <p>**Git** Internals</p>
+        <small class="text-lg mt-2">Especificaciones de Referencia (_Refspec_)</small>
+    </span>
+</FullTitle>
+
+---
+
+## Especificaciones de Referencia (_Refspec_)
+
+En [Flujo Basico de Git](https://madmti.github.io/git-workshop/clases/02-flujo-basico/) y [Flujos Remotos + Rebase](https://madmti.github.io/git-workshop/clases/06-remotos/)  vimos un poco de mapeados sencillos con ramas remotas,
+pero las cosas pueden ser bastante mas complejas. Cuando añades un remoto:
+
+```bash
+git remote add origin https://github.com/schacon/simplegit-progit
+```
+
+_Git_ añade una nueva seccion a tu archivo `.git/config` con el nombre del remoto (`origin`),
+la URL del repositorio remoto y la referencia para recuperar (_fetch_) desde el:
+
+```toml
+[remote "origin"]
+    url = https://github.com/schacon/simplegit-progit
+    fetch = +refs/heads/*:refs/remotes/origin/* # Recuperar todas las ramas desde el servidor
+```
+
+El formato de esa linea de recuperacion es `+<orig>:<dest>`:
+
+- `<orig>` es la plantilla para referencias en el lado remoto.
+- `<dest>` es donde esas referencias se escribiran en el lado local.
+- El `+` indica a _Git_ que debe actualizar la referencia incluso si no se trata de un _fast-forward_.
+
+<br />
+
+Por defecto, `git remote add` recupera todas las referencias bajo `refs/heads/` y las escribe localmente en `refs/remotes/origin/`.
+Si existe una rama `master` en el servidor, puedes acceder a ella localmente a traves de cualquiera de estas formas, que son equivalentes:
+
+```bash
+git log origin/master
+git log remotes/origin/master
+git log refs/remotes/origin/master
+```
+
+---
+
+Si quisieras que _Git_ recupere unicamente la rama `master` y no cualquier otra rama del servidor remoto, puedes cambiar la linea de recuperacion a:
+
+```toml
+fetch = +refs/heads/master:refs/remotes/origin/master # Recuperar solo master del servidor
+```
+
+O si quisieras recuperar la rama `master` del servidor a una rama local `mymaster`:
+
+```bash
+git fetch origin master:refs/remotes/origin/mymaster
+```
+
+Tambien puedes indicar multiples referencias en un solo comando:
+
+```bash
+git fetch origin master:refs/remotes/origin/mymaster \
+    topic:refs/remotes/origin/topic
+```
+
+O bien poner multiples lineas `fetch` en el archivo de configuracion,
+por ejemplo si siempre recuperas `master` y `experiment`
+
+```toml
+[remote "origin"]
+    url = https://github.com/schacon/simplegit-progit
+    fetch = +refs/heads/master:refs/remotes/origin/master
+    fetch = +refs/heads/experiment:refs/remotes/origin/experiment
+```
+
+> No puedes usar referencias genericas parciales en el patron. Algo como `fetch = +refs/heads/qa*:refs/remotes/origin/qa*` seria invalido.
+> Para lograr algo similar, debes usar espacios de nombres.
+
+---
+
+## Espacios de Nombres
+
+Si tienes un equipo QA que envia al servidor una serie de ramas y deseas recuperar solo las de ese equipo sin mezclarlas con las del resto, puedes usar una seccion de configuracion como esta:
+
+```toml
+[remote "origin"]
+    url = https://github.com/schacon/simplegit-progit
+    fetch = +refs/heads/master:refs/remotes/origin/master
+    fetch = +refs/heads/*:refs/remotes/origin/*
+    fetch = +refs/heads/qa/*:refs/remotes/origin/qa/*
+```
+
+De esta forma puedes asignar facilmente espacios de nombres y resolver flujos de trabajo complejos cuando tengas multiples equipos colaborando en ramas remotas.
+
+---
+
+## Enviando (_Push_) Referencias
+
+Si alguien del equipo QA quiere enviar su rama `master` a la ubicacion `qa/master` en el servidor remoto:
+
+```bash
+git push origin master:refs/heads/qa/master
+```
+
+Para que esto ocurra automaticamente cada vez que ejecute `git push origin`, puedes añadir una entrada `push` al archivo de configuracion:
+
+```toml
+[remote "origin"]
+    url = https://github.com/schacon/simplegit-progit
+    fetch = +refs/heads/*:refs/remotes/origin/*
+    push = refs/heads/master:refs/heads/qa/master
+```
+
+Esto hara que `git push origin` envie por defecto la rama local `master` a la rama remota `qa/master`.
+
+---
+
+## Borrando Referencias
+
+Las _refspec_ tambien pueden usarse para borrar referencias en el servidor remoto:
+
+```bash
+git push origin :topic
+```
+
+Como el formato es `<orig>:<dest>` y se omite la parte `<orig>`, esto le dice a _Git_ que envie _nada_ al destino `topic` en el remoto, lo que efectivamente la elimina.
+
+---
+
+## Recursos
+
+- [Pro Git - Cap. 10.5](https://git-scm.com/book/en/v2/Git-Internals-The-Refspec): Solo `10.5`.
