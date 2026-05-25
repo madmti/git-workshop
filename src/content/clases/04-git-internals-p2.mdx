@@ -1,9 +1,9 @@
 ---
 title: "Internals pt.2 — Referencias, HEAD y el DAG"
-description: "Comprende la estructura del Gráfico Acíclico Dirigido (DAG) en Git, cómo funcionan las referencias en .git/refs/, el puntero HEAD y la optimización con packfiles."
+description: "Referencias en .git/refs/, HEAD simbólico, packfiles y compresión de objetos, mantenimiento con git gc, recuperación de datos con reflog y git fsck, y variables de entorno esenciales."
 orden: 4
 label: "CLASE 04"
-duracion: "2h"
+duracion: "1h"
 dificultad: dificil
 recursos:
   - titulo: "Pro Git — Cap. 10.3: Git References"
@@ -387,6 +387,240 @@ entonces _Git_ se anticipa a esto usando la version sin diferencia para el mas r
 
 ---
 
+{/*
+==========================================================
+10.7 Mantenimiento y Recuperacion
+==========================================================
+*/}
+
+<FullTitle>
+    <span class="flex flex-col items-center">
+        <p>**Git** Internals</p>
+        <small class="text-lg mt-2">Mantenimiento y Recuperacion de Datos</small>
+    </span>
+</FullTitle>
+
+---
+
+## Mantenimiento
+
+De vez en cuando, _Git_ ejecuta automaticamente el comando `git gc --auto`. La mayor parte del tiempo este comando no hace nada, ya que necesitas tener alrededor de 7.000 objetos sueltos o mas de 50 archivos empaquetadores para que _Git_ arranque una limpieza real.
+Puedes lanzarlo manualmente cuando quieras:
+
+```bash
+git gc --auto
+```
+
+Entre otras cosas, `gc` agrupa todos los objetos sueltos en empaquetadores, consolida los empaquetadores pequeños en uno grande,
+elimina objetos no alcanzables por ningun _commit_, y actualiza alternativas como `git stash`.
+`gc` tambien empaqueta tus referencias en un unico archivo eficiente:
+
+```bash
+find .git/refs -type f
+.git/refs/heads/experiment
+.git/refs/heads/master
+.git/refs/tags/v1.0
+.git/refs/tags/v1.1
+```
+
+Despues de ejecutar `git gc`, esos archivos desaparecen de `refs/` y se consolidan en `.git/packed-refs`:
+
+```bash
+cat .git/packed-refs
+# pack-refs with: peeled fully-peeled
+cac0cab538b970a346d349e0d0e4196f5f3b1955 refs/heads/experiment
+ab1afef80fac8e34258959aa4e8e7b6e655e9e8b refs/heads/master
+9585191f37f7b0fb9444511119c5069a8c2e6f28 refs/tags/v1.0
+^1a410efbd13591db07496d4f82dfc14aad14979
+```
+
+Las lineas que comienzan con `^` indican que la etiqueta superior es anotada,
+y esa linea es el _commit_ al que apunta directamente.
+
+---
+
+## Recuperacion de Datos
+
+En algun momento de tu trabajo con _Git_ puede que pierdas accidentalmente un _commit_.
+Generalmente esto ocurre porque fuerzas el borrado de una rama con trabajo en ella,
+o porque haces un `reset --hard` moviendo a un _commit_ anterior.
+
+Supongamos que tienes este historial y haces reset a un _commit_ anterior:
+
+```bash
+git log --pretty=oneline
+ab1afef80fac8e34258959aa4e8e7b6e655e9e8b modified repo a bit
+484a59275031909876a47e24d18424ca6e0c4bf5 added repo.rb
+1a410efbd13591db07496d4f82dfc14aad14979  third commit
+cac0cab538b970a346d349e0d0e4196f5f3b1955 second commit
+fdf4fc3344e67ab068f836878b6c4951e3b15f3d first commit
+
+git reset --hard 1a410efbd13591db07496d4f82dfc14aad14979
+```
+
+Ahora has perdido los dos _commits_ superiores. Hay dos formas de recuperarlos.
+
+---
+
+### Via reflog
+
+Mientras trabajas, _Git_ registra silenciosamente el valor de `HEAD` cada vez que cambia en el `reflog`.
+Puedes consultarlo con:
+
+```bash
+git reflog
+1a410ef HEAD@{0}: reset: moving to 1a410ef
+ab1afef HEAD@{1}: commit: modified repo a bit
+484a592 HEAD@{2}: commit: added repo.rb
+```
+
+Puedes ver que perdiste los _commits_ `ab1afef` y `484a592`. Para recuperarlos, crea una nueva rama apuntando a ese commit:
+
+```bash
+git branch recover-branch ab1afef
+git log --pretty=oneline recover-branch
+ab1afef80fac8e34258959aa4e8e7b6e655e9e8b modified repo a bit
+484a59275031909876a47e24d18424ca6e0c4bf5 added repo.rb
+1a410efbd13591db07496d4f82dfc14aad14979  third commit
+...
+```
+
+---
+
+### Via `git fsck`
+
+Si el reflog no tiene la informacion que necesitas (por ejemplo porque el `gc` ya lo limpio), puedes usar `git fsck`, que comprueba la integridad de tu base de datos y lista todos los objetos a los que no se puede llegar:
+
+```bash
+git fsck --full
+Checking object directories: 100%
+Checking connectivity: done.
+dangling blob d670460b4b4aece5915caf5c68d12f560a9fe3e4 # Blob perdido
+dangling commit ab1afef80fac8e34258959aa4e8e7b6e655e9e8b # <- Commit perdido
+dangling tree aea790b9a58f6cf6f2804eeac9359346671de7f0 # Tree perdido
+dangling blob 7108f7ecb345ee9d0084193f147cdad4d2998293 # Blob perdido
+```
+
+El `dangling commit` es el _commit_ que perdiste. Puedes recuperarla de la misma forma: creando una rama apuntando a ese _checksum SHA-1_.
+
+---
+
+## Eliminar Objetos Grandes
+
+Uno de los problemas mas comunes que puede ocurrir es que alguien añada por error un archivo muy grande al repositorio.
+Incluso si lo borras en el siguiente _commit_, seguira presente en el historial y _Git_ tendra que clonarlo siempre.
+
+---
+
+Para encontrar el culpable, puedes inspeccionar el empaquetador y buscar el objeto mas pesado con `verify-pack`:
+
+```bash
+git verify-pack -v .git/objects/pack/pack-*.idx \ # Verifica el paquete
+  | sort -k 3 -n \ # Ordena por la 3ra columna, la de tamaño en Bytes
+  | tail -3 # Mostrar los ultimos 3 resultados
+#
+dadf7258d699da2c8d89b09ef6670edb7d5f91b4 commit 229 159 12
+033b4468fa6b2a9547a70d88d1bbe8bf3f9ed0d5 blob   22044 5792 4977696
+82c99a3e86bb1267b236a4b6eff7868d97489af1 blob   4975916 4976258 1438 # Blob de 4GB!
+```
+
+Luego averigua a que archivo corresponde ese _checksum SHA-1_ con `rev-list`:
+
+```bash
+git rev-list --objects --all | grep 82c99a3 # Listar todos los objetos, luego buscar por 82c99a3
+82c99a3e86bb1267b236a90d7b697a8d07cc8b6d git.tgz
+```
+
+Para eliminar ese archivo de todo el historial, primero identifica en que _commits_ aparecio:
+
+```bash
+git log --oneline --branches -- git.tgz # Lista los commits donde aparece git.tgz
+dadf7258 oops - removed large tarball
+7b30847d add git tarball
+```
+
+---
+
+Luego reescribe todos los _commits_ desde ese en adelante para que no contengan ese archivo con `filter-branch`:
+
+```bash
+git filter-branch --index-filter \
+  'git rm --ignore-unmatch --cached git.tgz' -- 7b30847d^..
+```
+
+Este comando revisa los _commits_ desde el `7b30847d` en adelante `^`, revisa el _area de preparacion_ `--index-filter`,
+y ejecuta la orden de eliminacion `git rm --cached git.tgz` para quitar el archivo `git.tgz`.
+
+<br/>
+
+> El comando `filter-branch` lo veremos mas adelante en [Recuperacion avanzada y herramientas de Git](https://madmti.github.io/git-workshop/clases/07-advance-recovery/).
+
+---
+
+Finalmente, limpia las referencias antiguas, el reflog y ejecuta `gc` para eliminar de verdad los objetos:
+
+```bash
+rm -Rf .git/refs/original
+rm -Rf .git/logs/
+git gc
+```
+
+Para verificar que el archivo grande ya no esta usamos `count-objects`:
+
+```bash
+git count-objects -v
+count: 8
+size: 2040
+in-pack: 19
+packs: 1
+size-pack: 3
+prune-packable: 0
+garbage: 0
+size-garbage: 0
+```
+
+> El tamaño del empaquetador (`size-pack`) es ahora de 3KB en lugar de los 3MB anteriores.
+> El archivo grande ha desaparecido del historial.
+
+---
+
+{/*
+==========================================================
+10.8 Variables de Entorno
+==========================================================
+*/}
+
+<FullTitle>
+    <span class="flex flex-col items-center">
+        <p>Variables de Entorno</p>
+        <small class="text-lg mt-2">Referencia rapida</small>
+    </span>
+</FullTitle>
+
+---
+
+## Variables de Entorno
+
+_Git_ siempre se ejecuta dentro de un shell y utiliza variables de entorno para determinar como comportarse.
+Aqui las mas utiles para el dia a dia:
+
+| Variable | Descripcion |
+|----------|-------------|
+| `GIT_DIR` | Cambia la ubicacion de la carpeta `.git/` |
+| `GIT_WORK_TREE` | Cambia el directorio de trabajo del repositorio |
+| `GIT_AUTHOR_NAME` | Sobreescribe el nombre del autor del commit |
+| `GIT_AUTHOR_EMAIL` | Sobreescribe el correo del autor del commit |
+| `GIT_COMMITTER_NAME` | Sobreescribe el nombre de quien confirma |
+| `GIT_COMMITTER_EMAIL` | Sobreescribe el correo de quien confirma |
+| `GIT_TRACE` | Activa logging detallado para depuracion |
+| `GIT_SSH` | Binario alternativo a usar cuando _Git_ necesita conectarse via SSH |
+
+<br/>
+
+> La referencia completa esta en el [Cap. 10.8 de Pro Git](https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables).
+
+---
+
 ## Recursos
 
-- [Pro Git - Cap. 10](https://git-scm.com/book/en/v2/Git-Internals-Git-References): Desde `10.3` a `10.8` (excepto `10.5`)
+- [Pro Git - Cap. 10](https://git-scm.com/book/en/v2/Git-Internals-Git-References): Desde `10.3` a `10.8` (excepto `10.5` y `10.6`, junto con un poco de `10.8`)
