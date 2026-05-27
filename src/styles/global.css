@@ -57,6 +57,7 @@ body {
 }
 .mdx-content pre code {
 	@apply border-0 bg-transparent p-0 text-content/90;
+	white-space: pre;
 }
 .mdx-content h2 {
 	@apply mt-10 mb-4 text-2xl font-bold tracking-tight text-primary uppercase;
