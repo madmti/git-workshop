@@ -1,6 +1,6 @@
 ---
-title: "Herramientas avanzadas de Git"
-description: "Rangos de commits, cherry-pick, staging interactivo, stash, búsqueda en historial, rebase interactivo, reset desmitificado y bisect."
+title: "Herramientas avanzadas pt.1 — Organización"
+description: "Revisión por selección, rangos de commits, cherry-pick, staging interactivo con git add -p, stash y limpieza del directorio de trabajo."
 orden: 7
 label: "CLASE 07"
 duracion: "1h"
@@ -404,6 +404,281 @@ Generalmente, teclearas `y` o `n` para cada bloque. Cuando termines, _Git_ crea 
 
 ---
 
+{/*
+==========================================================
+7.3 Guardado Rapido y Limpieza
+==========================================================
+*/}
+
+<FullTitle>
+    <span class="flex flex-col items-center">
+        <p>Herramientas de **Git**</p>
+        <small class="text-lg mt-2">_Guardado Rapido y Limpieza_</small>
+    </span>
+</FullTitle>
+
+---
+
+## Guardado Rapido (_Stash_)
+
+Muchas veces, cuando has estado trabajando en una parte de tu proyecto, las cosas se encuentran desordenadas y quieres cambiar de ramas para trabajar en algo mas.
+El problema es que no quieres hacer un _commit_ de un trabajo a medias. La respuesta a este problema es el comando `git stash`.
+
+<br />
+
+El guardado rapido toma el desorden de tu directorio de trabajo — es decir, tus archivos controlados por la version modificados y cambios almacenados en el area de ensayo —
+y lo guarda en una pila de cambios sin terminar que puedes volver a usar en cualquier momento.
+
+---
+
+### Demo basica
+
+Supongamos que estas trabajando en un par de archivos y posiblemente en tu etapa uno de cambios.
+Si ejecutas `git status`, puedes ver tu estado sucio:
+
+```bash
+git status
+Changes to be committed:
+  (use "git restore --staged..." to unstage)
+        modified: index.html
+
+Changes not staged for commit:
+  (use "git add..." to update what will be committed)
+  (use "git checkout --" to discard changes in working directory)
+        modified: lib/simplegit.rb
+```
+
+Ahora quieres cambiar de rama, pero no quieres hacer _commit_ del trabajo que has estado haciendo.
+Para crear un nuevo guardado rapido de tus archivos:
+
+```bash
+git stash
+Saved working directory and index state \
+  "WIP on master: 049d078 added the index file"
+HEAD is now at 049d078 added the index file
+(To restore them type "git stash apply")
+```
+
+Tu directorio de trabajo esta limpio:
+
+```bash
+git status
+# On branch master
+nothing to commit, working directory clean
+```
+
+---
+
+En este punto, puedes facilmente cambiar de ramas y hacer trabajo en otro lugar. Tus cambios estan guardados en tus archivos. Para ver que guardados rapidos has almacenado, puedes usar `git stash list`:
+
+```bash
+git stash list
+stash@{0}: WIP on master: 049d078 added the index file
+stash@{1}: WIP on master: c264051 Revert "added file_size"
+stash@{2}: WIP on master: 21d80a5 added number to log
+```
+
+Para volver a aplicar el que acabas de guardar, puedes ejecutar el comando que aparece en la salida del comando original `git stash`. Si quieres hacer entrada a uno de los guardados rapidos anteriores, puedes especificarlo poniendo su nombre de esta manera: `git stash apply stash@{2}`. Si no especificas un guardado, _Git_ adopta el guardado mas reciente e intenta hacerlo entrada:
+
+```bash
+git stash apply
+# On branch master
+# Changed but not updated:
+#   (use "git add <file>..." to update what will be committed)
+#
+#       modified:   index.html
+#       modified:   lib/simplegit.rb
+```
+
+---
+
+Puedes ver que __Git__ vuelve a aplicar los cambios guardados en el __stash__ directamente sobre tus archivos.
+
+<br />
+
+En este caso, tenias un directorio de trabajo limpio e intentaste aplicar el __stash__ en la misma rama donde lo habias creado. Sin embargo, no es obligatorio que el directorio este limpio, ni tampoco que estes en la misma rama para poder recuperar tus cambios con exito.
+
+<br />
+
+De hecho, puedes crear un __stash__ en una rama, cambiarte a otra y aplicar los cambios alli. Tambien puedes recuperar un __stash__ aunque tengas cambios locales sin confirmar en tu directorio de trabajo, en ese caso, si los cambios chocan, __Git__ simplemente generara un conflicto de fusion para que lo resuelvas.
+
+---
+
+Los cambios en tus archivos se han vuelto a aplicar, pero el estado del __area de preparacion__ no se restauro. Para lograr eso, tienes que ejecutar el comando `git stash apply` con la opcion `--index`, la cual le indica a __Git__ que intente reaplicar tambien los cambios que ya tenias listos para confirmar (staged). Si lo hubieras ejecutado de esta manera, habrias recuperado tu espacio de trabajo exactamente en su posicion original.
+
+<br />
+
+Ten en cuenta que usar la opcion `--index` no elimina el __stash__ de tu lista, solo mantiene los cambios en tus archivos. Para remover ese __stash__ de forma permanente, debes ejecutar el comando `git stash drop` seguido del identificador del guardado que deseas eliminar:
+
+```bash
+git stash list
+stash@{0}: WIP on master: 049d078 added the index file
+stash@{1}: WIP on master: c264051 Revert "added file_size"
+stash@{2}: WIP on master: 21d80a5 added number to log
+git stash drop stash@{0}
+Dropped stash@{0} (364e91f3f268f0900edec309ff7f3be04aeeef2)
+```
+
+---
+
+### Guardado rapido creativo
+
+Hay algunas variantes del guardado rapido que pueden ser utiles tambien.
+La primera opcion que es muy popular, `--keep-index` le dice a _Git_ que no guarde nada que tu ya hayas almacenado con el comando `git add`:
+
+```bash
+git status -s
+M  index.html       # index.html preparado
+ M lib/simplegit.rb # simplegit.rb sin preparar
+#
+git stash --keep-index # guardado rapido de todo lo que no esta preparado
+Saved working directory and index state WIP on master: 1b65b17 added the index file
+HEAD is now at 1b65b17 added the index file
+#
+git status -s
+M  index.html       # index.html preparado
+```
+
+Esto puede ser util cuando ya has hecho un buen numero de cambios, pero solo quieres aplicar permanentemente algunos de ellos y luego regresar al resto de cambios en una siguiente ocasion.
+
+---
+
+Otra cosa comun que puede que quieras hacer con tus guardados es hacer un guardado rapido de los archivos que no estan bajo seguimiento (_untracked_) junto a los que estan bajo seguimiento (_tracked_).
+Por defecto, `git stash` solamente guardara archivos que ya esten en el _area de preparacion_.
+Si especificas `--include-untracked` o `-u`, _Git_ tambien hara un guardado rapido de cualquier archivo que no este bajo seguimiento (_untracked_):
+
+```bash
+git status -s
+M  index.html       # index.html preparado
+ M lib/simplegit.rb # simplegit.rb sin preparar pero bajo seguimiento
+?? new-file.txt     # nuevo archivo, no esta bajo seguimiento
+#
+git stash -u        # guardado rapido de absolutamente todo
+Saved working directory and index state WIP on master: 1b65b17 added the index file
+HEAD is now at 1b65b17 added the index file
+#
+git status -s
+# Todo quedo en el guardado rapido
+```
+
+---
+
+Finalmente, si especificas la flag `--patch`, _Git_ no hara guardado rapido instantaneamente,
+sino que te preguntara interactivamente cuales de los cambios guardar y cuales mantener en tu trabajo directamente:
+
+```bash
+git stash --patch   # Guardado rapido interactivo
+diff --git a/lib/simplegit.rb b/lib/simplegit.rb
+index 66d332e..8bb5674 100644
+--- a/lib/simplegit.rb
++++ b/lib/simplegit.rb
+@@ -16,6 +16,10 @@ class SimpleGit
+         return `#{git_cmd} 2>&1`.chomp
+       end
+     end
++
++    def show(treeish = 'master')
++      command("git show #{treeish}")
++    end
+#
+ end
+ test
+Stash this hunk [y,n,q,a,d,/,e,?]? y
+#
+Saved working directory and index state WIP on master: 1b65b17 added the index file
+```
+
+---
+
+### Creando una Rama desde un Guardado Rapido
+
+Si almacenas algun trabajo, lo dejas ahi por un tiempo y continuas trabajando en la misma rama,
+puede que tengas problemas rehaciendo la entrada al trabajo: es posible tener conflictos de fusion y deberas resolverlos.
+
+<br />
+
+Si quieres una forma mas facil de probar los cambios guardados, puedes ejecutar `git stash branch`,
+el cual crea una nueva rama con el trabajo del guardado rapido para que puedas probarlo y luego realizar una fusion devuelta a la rama original:
+
+```bash
+git stash branch testchanges
+Switched to a new branch 'testchanges'
+# On branch testchanges
+# Changes to be committed:
+#   (use "git restore --staged..." to unstage)
+#
+#       modified:   index.html
+#
+# Changed but not updated:
+#   (use "git add..." to update what will be committed)
+#
+#       modified:   lib/simplegit.rb
+Dropped refs/stash@{0} (f0dfc4d5dc332d1cee34a634182e168c4efc3359)
+```
+
+Este es un buen metodo rapido para recuperar el trabajo guardado, trabajando en una nueva rama sin conflictos.
+
+---
+
+## Limpiando tu Directorio de Trabajo
+
+A veces no quieres guardar tu trabajo temporal en un __stash__, sino que simplemente deseas deshacerte de los archivos sobrantes en tu directorio de trabajo. El comando `git clean` sirve exactamente para eso.
+
+<br />
+
+Algunos escenarios comunes para usarlo son eliminar archivos residuales, o borrar archivos compilados y caches que se crean al ejecutar el proyecto.
+
+<br />
+
+Debes tener mucho cuidado con este comando, ya que esta diseñado para eliminar de forma permanente los archivos de tu directorio de trabajo que _no estan bajo seguimiento_ por Git.
+Si cambias de opinion despues de usarlo, por lo general no hay forma de recuperar el contenido de esos archivos. Una opcion mucho mas segura es ejecutar `git stash --all`, lo cual limpia todo tu directorio pero respalda los archivos en un __stash__ por si acaso.
+
+<br />
+
+Si estas seguro de que quieres eliminar la basura y limpiar tu directorio, puedes usar `git clean`.
+Para borrar todos los archivos y carpetas que _no estan bajo seguimiento_,
+debes ejecutar `git clean -f -d`. Aqui, el parametro `-d` incluye los subdirectorios y el parametro `-f` significa **forzar** (force), necesario porque Git bloquea este comando por defecto para evitar accidentes.
+
+<br />
+
+Si alguna vez quieres revisar que archivos se borrarian antes de ejecutar el comando real, puedes usar la opcion `-n` para hacer una simulacion:
+
+```bash
+git clean -d -n     # limpiar espacio de trabajo incluyendo carpetas en modo simulacion
+Would remove test.o # test.o seria eliminado
+Would remove tmp/   # carpeta tmp/ seria eliminada
+```
+
+---
+
+Por defecto, el comando `git clean` solo removera archivos que _no estan bajo seguimiento_ y que no estan _ignorados_.
+Cualquier archivo que empareje un patron de tu `.gitignore` u otros archivos ignorados no seran removidos.
+Si quieres eliminar esos archivos tambien, como para remover todos los `.o` generados por una version,
+para tener una version completamente limpia, puedes añadir un `-x` al comando:
+
+```bash
+git clean -n -d -x      # limpiar espacio de trabajo incluyendo carpetas y archivos ignorados en modo simulacion
+Would remove build.TMP  # build.TMP seria eliminado
+Would remove test.o     # test.o seria eliminado
+Would remove tmp/       # carpeta tmp/ seria eliminada
+```
+
+Si no sabes lo que el comando `git clean` va a hacer, siempre ejecutalo con un `-n` primero para estar seguro antes de cambiar el `-n` (_simluacion_) al `-f` (_forzar_) y hacerlo de verdad.
+La otra forma en la que puedes ser cuidadoso con el proceso es ejecutarlo con el `-i` (_interactivo_):
+```bash
+git clean -x -i     # limpiar espacio de trabajo incluyendo archivos ignorados en modo interactivo
+Would remove the following items:
+  build.TMP  test.o
+*** Commands ***
+    1: clean    2: filter by pattern    3: select by numbers    4: ask each    5: quit
+    6: help
+What now>
+```
+
+De esta manera puedes decidir por cada archivo individualmente o especificar los patrones para la eliminacion de forma interactiva.
+
+---
+
 ## Recursos
 
-- [Pro Git - Cap. 7](https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection): `7.1`, `7.2`, `7.3`, `7.5`, `7.6`, `7.7` y `7.10`.
+- [Pro Git - Cap. 7](https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection): `7.1`, `7.2` y `7.3`.
