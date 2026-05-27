@@ -234,6 +234,176 @@ Con estos tres tipos de sintaxis (_checksum SHA-1_ corto, referencias de rama, y
 
 ---
 
+{/*
+==========================================================
+7.2 Organizacion Interactiva
+==========================================================
+*/}
+
+<FullTitle>
+    <span class="flex flex-col items-center">
+        <p>Herramientas de **Git**</p>
+        <small class="text-lg mt-2">_Organizacion Interactiva_</small>
+    </span>
+</FullTitle>
+
+---
+
+## Organizacion Interactiva
+
+_Git_ viene con unos cuantos scripts que hacen que algunas tareas de linea de comando sean mas faciles de usar.
+Aqui veremos unos cuantos comandos interactivos que te ayudaran a preparar tus _commits_ para incluir solo ciertas combinaciones y partes de los archivos.
+
+<br />
+
+Estas herramientas son muy utiles si modificas unos cuantos archivos y decides que esos cambios esten en varios _commits_ enfocados,
+en lugar de en un gran _commit_ problematico.
+Si ejecutas `git add` con `-i` o `--interactive`,
+_Git_ entra en un modo de celda interactiva:
+
+```bash
+git add -i
+           staged     unstaged path
+  1:    unchanged        +0/-1 TODO
+  2:    unchanged        +1/-1 index.html
+  3:    unchanged        +5/-1 lib/simplegit.rb
+
+*** Commands ***
+  1: status   2: update   3: revert   4: add untracked
+  5: patch    6: diff     7: quit     8: help
+What now>
+```
+
+Puedes ver que este comando te muestra una vista muy diferente de tu area de ensayo:
+la misma informacion que `git status` pero mas informativa.
+Muestra los cambios que has realizado a la izquierda y los cambios que no has preparado a la derecha.
+
+---
+
+## Organizar y Desorganizar Archivos
+
+Si tecleas `2` o `u` en el prompt `What now>`,
+el modo interactivo te pregunta que archivos quieres organizar:
+
+```bash
+What now> 2
+           staged     unstaged path
+  1:    unchanged        +0/-1 TODO
+  2:    unchanged        +1/-1 index.html
+  3:    unchanged        +5/-1 lib/simplegit.rb
+Update>>
+```
+
+Para organizar `TODO` e `index.html`, tecleas los numeros:
+
+```bash
+Update>> 1,2
+           staged     unstaged path
+* 1:    unchanged        +0/-1 TODO
+* 2:    unchanged        +1/-1 index.html
+  3:    unchanged        +5/-1 lib/simplegit.rb
+Update>>
+```
+
+---
+
+El `*` antes de cada archivo indica que esta seleccionado para ser organizado.
+Al pulsar Enter sin escribir nada, _Git_ organiza todo lo seleccionado:
+
+```bash
+updated 2 paths
+*** Commands ***
+  1: status   2: update   3: revert   4: add untracked
+  5: patch    6: diff     7: quit     8: help
+What now> 1
+           staged     unstaged path
+  1:        +0/-1      nothing TODO
+  2:        +1/-1      nothing index.html
+  3:    unchanged        +5/-1 lib/simplegit.rb
+```
+
+Para desorganizar un archivo, usas la opcion `3` o `r` (revert).
+Para ver las diferencias de lo que has organizado, usas la opcion `6` o `d` (diff).
+
+```bash
+*** Commands ***
+  1: status     2: update      3: revert     4: add untracked
+  5: patch      6: diff        7: quit       8: help
+What now> 6
+           staged     unstaged path
+  1:        +1/-1      nothing index.html
+Review diff>> 1
+diff --git a/index.html b/index.html
+index 4d07108..4335f49 100644
+--- a/index.html
++++ b/index.html
+@@ -16,7 +16,7 @@ Date Finder
+
+ <p id="out">...</p>
+
+-<div id="footer">contact : support@github.com</div>
++<div id="footer">contact : email.support@github.com</div>
+
+ <script type="text/javascript">
+```
+
+---
+
+## Parches de Organizacion
+
+Lo que realmente es potente en _Git_ es que puedes organizar **partes** de archivos en lugar de archivos enteros.
+Por ejemplo, si tienes dos cambios en `lib/simplegit.rb` y quieres organizar uno pero no el otro, es muy facil hacerlo.
+
+<br />
+
+Desde el prompt interactivo, tecleas `5` o `p` (patch).
+_Git_ te preguntara que archivos quieres organizar parcialmente y, para cada seccion de los archivos seleccionados,
+mostrara bloques del archivo diferencial preguntandote si los quieres organizar uno por uno:
+
+```bash
+diff --git a/lib/simplegit.rb b/lib/simplegit.rb
+index dd5ecc4..57399e0 100644
+--- a/lib/simplegit.rb
++++ b/lib/simplegit.rb
+@@ -22,7 +22,7 @@ class SimpleGit
+   end
+
+   def log(treeish = 'master')
+-    command("git log -o 25 #{treeish}")
++    command("git log -n 30 #{treeish}")
+   end
+...
+Stage this hunk [y,n,a,d,/,j,J,g,e,?]?
+```
+
+---
+
+| Comando | Acción | Descripción detallada |
+| --- | --- | --- |
+| **`y`** | Organizar | Organiza el bloque actual. |
+| **`n`** | No organizar | Omite el bloque actual sin organizarlo. |
+| **`a`** | Organizar todo | Organiza este bloque y **todos** los bloques restantes de forma automática. |
+| **`d`** | No organizar nada más | Omite este bloque y **todos** los que quedan en el archivo. |
+| **`g`** | Ir a | Te permite seleccionar un bloque específico para saltar a él. |
+| **`/`** | Buscar | Busca un bloque que coincida con una expresión regular (regex). |
+| **`j`** | Siguiente sin decidir | Deja este bloque pendiente y salta al **siguiente bloque que no hayas decidido**. |
+| **`J`** | Siguiente bloque | Deja este bloque pendiente y salta al **bloque inmediatamente posterior**. |
+| **`k`** | Anterior sin decidir | Deja este bloque pendiente y vuelve al **anterior bloque que no hayas decidido**. |
+| **`K`** | Bloque anterior | Deja este bloque pendiente y vuelve al **bloque inmediatamente anterior**. |
+| **`s`** | Dividir | Divide el bloque actual en bloques más pequeños para un control más preciso. |
+| **`e`** | Editar | Permite editar manualmente el contenido del bloque actual. |
+
+---
+
+Generalmente, teclearas `y` o `n` para cada bloque. Cuando termines, _Git_ crea un script de organizacion interactivo y ejecuta `git commit` para confirmar los archivos parcialmente organizados.
+
+<br/>
+
+> No necesitas estar en el modo interactivo para hacer la organizacion parcial de archivos. Puedes iniciar el mismo script con `git add -p` o `git add --patch` directamente en la linea de comando.
+> Tambien puedes usar `reset --patch` para desorganizar parcialmente, `checkout --patch` para descartar partes de archivos, y `stash save --patch` para guardar solo partes.
+
+---
+
 ## Recursos
 
 - [Pro Git - Cap. 7](https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection): `7.1`, `7.2`, `7.3`, `7.5`, `7.6`, `7.7` y `7.10`.
