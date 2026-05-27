@@ -8,19 +8,229 @@ dificultad: dificil
 recursos:
   - titulo: "Pro Git — Cap. 7.1: Revision Selection"
     url: https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection
-draft: true
+draft: false
 ---
 
 import ImageSet from 'MDX/ImageSet.astro';
 import Image from 'MDX/Image.astro';
+import SideImage from 'MDX/SideImage.astro';
 import FullTitle from 'MDX/FullTitle.astro';
+
+{/*
+==========================================================
+7.1 Revision por Seleccion
+==========================================================
+*/}
 
 <FullTitle>
     <span class="flex flex-col items-center">
-        <p></p>
-        <small class="text-lg mt-2"></small>
+        <p>Herramientas de Git</p>
+        <small class="text-lg mt-2">Revision por Seleccion</small>
     </span>
 </FullTitle>
+
+---
+
+## Revision por Seleccion
+
+_Git_ te permite especificar _commits_ o rangos de _commits_ de varias formas.
+No son necesariamente obvias, pero vale la pena conocerlas.
+
+---
+
+### _checksum SHA-1_ Corto
+
+_Git_ es lo suficientemente inteligente como para deducir el _commit_ al que te refieres si le das los primeros caracteres del _checksum SHA-1_,
+siempre que sea lo suficientemente largo para ser unico (al menos 4 caracteres). Por ejemplo:
+
+```bash
+git log --abbrev-commit --pretty=oneline
+734713b changed the version number
+d921970 removed unnecessary test code
+1c002dd first commit
+```
+
+> La opcion `--abbrev-commit` muestra los valores cortos pero manteniendolos unicos. (por defecto muestra 7 caracteres)
+
+<br/>
+
+Puedes hacer referencia a cualquiera de esos _commits_ usando los primeros caracteres unicos de su _checksum SHA-1_.
+Por ejemplo:
+
+```bash
+# Los 3 comandos son equivalentes
+git show 1c002dd4b536e7479fe34593e72e6c6c1819e53b
+git show 1c002dd4b536e7479f
+git show 1c002d
+```
+
+---
+
+### Referencias de Rama
+
+La forma mas sencilla de referirse a un _commit_ especifico es usar el nombre de una rama que apunte a el.
+Por ejemplo, si quieres ver a que objeto _commit_ apunta la rama `topic1`:
+
+```bash
+git show topic1
+```
+
+Si quieres ver a que _checksum SHA-1_ apunta una rama, puedes usar el comando de fontaneria `git rev-parse`:
+
+```bash
+git rev-parse topic1
+ca82a6dff817ec66f44342007202690a93763949
+```
+
+---
+
+### Reflog
+
+Mientras trabajas, _Git_ registra silenciosamente donde han estado `HEAD` y tus ramas en los ultimos meses en el _reflog_.
+Puedes consultarlo con:
+
+```bash
+git reflog
+734713b HEAD@{0}: commit: fixed refs handling
+d921970 HEAD@{1}: merge phedders/rdocs: Merge made by recursive.
+1c002dd HEAD@{2}: commit: added some blame and merge stuff
+```
+
+Cada vez que la ultima referencia de tu rama es actualizada por cualquier motivo,
+_Git_ guarda esa informacion en el historial temporal del reflog.
+Puedes usar la sintaxis `@{n}` para referirte a confirmaciones anteriores:
+
+```bash
+git show HEAD@{5}           # quinto HEAD anterior
+git show master@{yesterday} # donde estaba master ayer
+```
+
+Es importante destacar que **el reflog es estrictamente local**. Solo existe en tu propio repositorio y refleja lo que tu has hecho. No tiene ninguna relacion con lo que otros hayan hecho en su copia del repositorio.
+
+---
+
+### Seleccion por Ancestro
+
+La otra forma principal de especificar un _commit_ es a traves de su ancestro.
+Si colocas `^` al final de una referencia, _Git_ lo resuelve como el padre de ese _commit_:
+
+```bash
+git show HEAD^     # padre de HEAD
+git show HEAD^^    # abuelo de HEAD
+```
+
+En caso de que un _commit_ tenga mas de 1 padre (en un _merge commit_ por ejemplo), podriamos hacer algo como esto:
+
+```bash
+# Supongamos un merge topic1 -> dev
+git show HEAD^ # El primer padre de HEAD (dev)
+git show HEAD^2 # segundo padre de HEAD (topic1)
+```
+
+La otra sintaxis de ancestro es el tilde `~`. `HEAD~` es equivalente a `HEAD^`.
+La diferencia aparece cuando se combina con un numero:
+`HEAD~3` significa el bisabuelo (primer padre, tres niveles atras),
+mientras que `HEAD^3` seria el tercer padre de un _merge commit_.
+
+```bash
+git show HEAD~3 # 3 commits atras
+git show HEAD^^^ # 3 commits atras
+```
+
+---
+
+## Rangos de _Commits_
+
+Ahora que ya sabes como especificar _commits_ individuales, veamos como especificar rangos.
+Supongamos un historial como el siguiente:
+
+<Image
+    url="/git-workshop/07/double-dot.png"
+    alt="Commits alcanzables por master o experiment pero no por ambos"
+    fit="contain"
+    aspect="wide"
+    tw="max-w-2xl mx-auto"
+/>
+
+---
+
+### Doble punto
+
+La sintaxis mas comun es el rango con doble punto `..`,
+que le dice a _Git_ que resuelva todas los _commits_ que son alcanzables desde una referencia pero no desde la otra:
+
+```bash
+git log master..experiment # Commits de experiment no alcanzados por master
+D
+C
+```
+
+Esto muestra todos los _commits_ en `experiment` que aun no han sido fusionados en `master`.
+Si lo inviertes, ves los _commits_ de `master` que no estan en `experiment`:
+
+```bash
+git log experiment..master # Commits de master no alcanzados por experiment
+F
+E
+```
+
+Esto es muy util para saber que vas a enviar a un remoto antes de hacer `push`:
+
+```bash
+git log origin/master..HEAD # Commits de HEAD no alcanzados por origin/master
+```
+
+Si `HEAD` no tiene nada que `origin/master` no tenga, el comando no devuelve nada.
+
+---
+
+### Multiples puntos
+
+Si necesitas filtrar por mas de dos ramas,
+puedes usar `^` o `--not` delante de cualquier referencia de la que no quieras ver confirmaciones:
+
+```bash
+# Comandos equivalentes
+git log refA..refB          # commits en refB que no esten en refA
+git log ^refA refB          # commits en refB que no esten en refA
+git log refB --not refA     # commits en refB que no esten en refA
+```
+
+Esto es muy potente porque permite hacer lo mismo con mas de dos referencias,
+algo que la sintaxis de doble punto no puede hacer:
+
+```bash
+git log refA refB ^refC # commits en refA o refB pero no en refC
+git log refA refB --not refC # commits en refA o refB pero no en refC
+```
+
+---
+
+### Triple punto
+
+La sintaxis de triple punto especifica todos los _commits_ que son alcanzables por cualquiera de las dos referencias pero no por ambas a la vez (_diferencia simetrica_):
+
+```bash
+git log master...experiment
+F
+E
+D
+C
+```
+
+Esto te muestra los _commits_ de cada rama que no estan en la otra.
+Para que la salida sea mas clara, puedes añadir `--left-right`,
+que muestra de que lado del rango viene cada _commit_:
+
+```bash
+git log --left-right master...experiment
+< F
+< E
+> D
+> C
+```
+
+Con estos tres tipos de sintaxis (_checksum SHA-1_ corto, referencias de rama, y rangos) tienes un control muy preciso sobre cualquier punto o tramo del historial de tu proyecto.
 
 ---
 
