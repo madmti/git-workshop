@@ -8,19 +8,379 @@ dificultad: dificil
 recursos:
   - titulo: "Pro Git — Cap. 7.5: Searching"
     url: https://git-scm.com/book/en/v2/Git-Tools-Searching
-draft: true
+draft: false
 ---
 
 import ImageSet from 'MDX/ImageSet.astro';
 import Image from 'MDX/Image.astro';
+import SideImage from 'MDX/SideImage.astro';
 import FullTitle from 'MDX/FullTitle.astro';
+
+{/*
+==========================================================
+7.5 Buscando
+==========================================================
+*/}
+---
 
 <FullTitle>
     <span class="flex flex-col items-center">
-        <p></p>
-        <small class="text-lg mt-2"></small>
+        <p>Herramientas de **Git**</p>
+        <small class="text-lg mt-2">Buscando</small>
     </span>
 </FullTitle>
+
+---
+
+## Buscando
+
+Con casi cualquier tamaño de base de codigo, a menudo necesitaras encontrar en donde se llama o define una funcion, o encontrar el historial de un metodo.
+_Git_ proporciona un par de herramientas utiles para examinar el codigo y hacer _commit_ a las _snapshots_ almacenadas en su base de datos de forma rapida y facil.
+
+---
+
+## Git Grep
+
+_Git_ posee un comando llamado `grep` que te permite buscar facilmente a traves de cualquier arbol de directorio de trabajo con _commit_ por una cadena o expresion regular.
+Para estos ejemplos, veremos el codigo fuente de _Git_.
+
+<br/>
+
+Por defecto, mirara a traves de los archivos en su directorio de trabajo. Puedes pasar `-n` para imprimir los numeros de linea donde _Git_ ha encontrado coincidencias:
+
+```bash
+git grep -n gtime_r
+compat/gmtime.c:3:#undef gtime_r
+compat/gmtime.c:8:    return git_gmtime_r(timep, &result);
+compat/gmtime.c:11:struct tm *git_gmtime_r(const time_t *timep, struct tm *result)
+...
+```
+
+---
+
+Hay una serie de opciones interesantes que puede proporcionar el comando `grep`.
+Por ejemplo, en lugar de la llamada anterior, puedes hacer que _Git_ resuma el resultado simplemente mostrandote que archivos coinciden y cuantas coincidencias hay en cada archivo con la opcion `--count`:
+
+```bash
+git grep --count gtime_r
+compat/gmtime.c:4
+compat/xmmap.c:1
+date.c:3
+git-compat-util.h:2
+```
+
+Si quieres ver en que metodo o funcion piensa _Git_ que ha encontrado una coincidencia, puedes pasar `-p`:
+
+```bash
+git grep -p gtime_r *.c
+date.c=static int match_multi_number(...)
+date.c:         if (gtime_r(&now, &now_tm))
+...
+```
+
+---
+
+Tambien puedes buscar combinaciones complejas de cadenas con el indicador `--and`, que asegura que multiples coincidencias esten en la misma linea. Por ejemplo, busquemos cualquier linea que defina una constante con las cadenas `LINK` o `BUF_MAX` en ellas en la base del codigo de _Git_ en una version 1.8.0 anterior, usando tambien las opciones `--break` y `--heading` que ayudan a dividir el resultado en un formato mas legible:
+
+```bash
+git grep --break --heading \
+    -n -e '#define' --and \( -e LINK -e BUF_MAX \) v1.8.0
+v1.0:/builtin/index-pack.c
+62:#define FLAG_LINK (1u<<20)
+
+v1.8.0:cache.h
+73:#define S_IFGITLINK  0160000
+76:#define S_ISGITLINK(m)   (((m) & S_IFMT) == S_IFGITLINK)
+...
+```
+
+El comando `git grep` tiene algunas ventajas sobre los comandos de busqueda normales como `grep` y `ack`: es realmente rapido,
+y puedes buscar a traves de cualquier arbol de _Git_, no solo en el directorio de trabajo.
+
+---
+
+## Busqueda de Registro de Git
+
+Quizas no estas buscando **donde** existe un termino, sino **cuando** existio o se introdujo. El comando `git log` tiene varias herramientas potentes para encontrar _commits_ especificos por el contenido de sus mensajes o incluso el contenido de las diferencias que introducen.
+
+<br/>
+
+Si queremos saber, por ejemplo, cuando se introdujo originalmente la constante `ZLIB_BUF_MAX`, podemos decirle a _Git_ que solo nos muestre los _commits_ que agregaron o eliminaron esa cadena con la opcion `-S`:
+
+```bash
+git log -SZLIB_BUF_MAX --oneline
+e01503b zlib: allow feeding more than 4GB in one go
+ef49a7a zlib: zlib can only process 4GB at a time
+```
+
+Si miramos la diferencia de esos _commits_, podemos ver que en `ef49a7a` se introdujo la constante y en `e01503b` se modifico.
+
+Si necesitas ser mas especifico, puedes proporcionar una expresion regular para buscar con la opcion `-G`.
+
+---
+
+## Busqueda de Registro de Linea
+
+Otra busqueda de registro bastante avanzada que es increiblemente util es la busqueda del historial de linea. Se llama con la opcion `-L` a `git log` y te mostrara el historial de una funcion o linea de codigo en tu base de codigo.
+
+Por ejemplo, si quisieras ver cada cambio realizado en la funcion `git_deflate_bound` en el archivo `zlib.c`, podrias ejecutar `git log -L :git_deflate_bound:zlib.c`. Esto intentara descubrir cuales son los limites de esa funcion y luego examinara el historial y nos mostrara cada cambio que se hizo a la funcion como una serie de parches desde cuando se creo la funcion por primera vez:
+
+```bash
+git log -L :git_deflate_bound:zlib.c
+commit ef49a7a0126d64359c974b4b3b71d7ad42ee3bca
+Author: Junio C Hamano <gitster@pobox.com>
+Date:   Fri Jun 10 11:52:15 2011 -0700
+
+    zlib: zlib can only process 4GB at a time
+
+diff --git a/zlib.c b/zlib.c
+--- a/zlib.c
++++ b/zlib.c
+@@ -85,3 +130,3 @@
+-unsigned long git_deflate_bound(z_streamp strm, unsigned long size)
++unsigned long git_deflate_bound(z_stream *strm, unsigned long size)
+...
+```
+
+Si _Git_ no puede encontrar la forma de relacionar una funcion o metodo en tu lenguaje de programacion, tambien puedes proporcionarle una expresion regular. Por ejemplo, esto habria hecho lo mismo: `git log -L '/unsigned long git_deflate_bound/',/^}/:zlib.c`. Tambien podrias darle un rango de lineas o un unico numero de linea y obtendrias el mismo tipo de salida.
+
+---
+
+<FullTitle>
+    <span class="flex flex-col items-center">
+        <p>Herramientas de **Git**</p>
+        <small class="text-lg mt-2">Reescribiendo la Historia</small>
+    </span>
+</FullTitle>
+
+---
+
+## Reescribiendo la Historia
+
+Muchas veces, cuando trabajas con _Git_, puede que quieras modificar tu historial de _commits_.
+Una de las grandes virtudes de _Git_ es que te permite tomar decisiones en el ultimo momento posible.
+Puedes decidir que archivos van en que _commits_ justo antes de confirmar desde el area de preparacion,
+puedes decidir que no quieres trabajar en algo todavia con `git stash`,
+y puedes reescribir _commits_ que ya han ocurrido para que parezcan haber sido hechas de una manera diferente.
+
+<br />
+
+> Nunca reescribas _commits_ que ya hayas enviado a un repositorio publico.
+
+---
+
+## Cambiar el Ultimo _Commit_
+
+Modificar tu ultimo _commit_ es probablemente la reescritura de la historia que haras mas frecuentemente.
+A menudo quieres hacer dos cosas: cambiar el mensaje del _commit_, o cambiar la _snapshot_ que acabas de registrar añadiendo, modificando o eliminando archivos.
+
+<br />
+
+Para modificar solo el mensaje del ultimo _commit_:
+
+```bash
+git commit --amend
+```
+
+Esto abre tu editor con tu ultimo mensaje de _commit_ en el, listo para que lo modifiques.
+Cuando guardas y cierras el editor, el editor escribe un nuevo _commit_ que contiene ese mensaje y la hace tu nuevo ultimo _commit_.
+
+<br />
+
+Si ya hiciste _commit_ y quieres cambiar la _snapshot_ añadiendo o modificando archivos, el proceso es basicamente el mismo: haz los cambios, prepara los archivos con `git add` y luego:
+
+```bash
+git commit --amend
+```
+
+> Ten cuidado con esta tecnica: al enmendar cambia el SHA-1 del commit. Es como un rebase muy pequeño — no enmiendes tu ultimo _commit_ si ya lo has enviado al servidor.
+
+---
+
+## Cambiar Multiples Mensajes de _Commits_
+
+Para modificar un _commit_ que esta mas atras en tu historia, debes usar el rebase interactivo.
+Puedes ejecutar el rebase interactivamente añadiendo la opcion `-i` a `git rebase`.
+Debes indicar que tan atras quieres ir especificando a que _commit_ quieres rebasar.
+
+<br/>
+
+Por ejemplo, si quieres cambiar los mensajes de los tres ultimos _commits_:
+
+```bash
+git rebase -i HEAD~3
+```
+
+El script que se abre tiene un aspecto similar a este:
+
+```bash
+pick f7f3f6d changed my name a bit
+pick 310154e updated README formatting and added blame
+pick a5f4a0d added cat-file
+
+# Rebase 710f0f8..a5f4a0d onto 710f0f8
+#
+# Commands:
+# p, pick   = use commit
+# r, reword = use commit, but edit the commit message
+# e, edit   = use commit, but stop for amending
+# s, squash = use commit, but meld into previous commit
+# f, fixup  = like squash, but discard this commit's log message
+# d, drop   = remove commit
+```
+
+Nota que el orden es al reves del que muestra `git log`: el mas viejo aparece arriba.
+
+---
+
+Para cambiar el mensaje de un _commit_, cambia `pick` por `reword` (o `r`).
+Para modificar el contenido de un _commit_, usa `edit` (o `e`).
+Al guardar y salir, _Git_ reproductira los _commits_ y se detendra en cada una marcada con `edit`, donde podras enmendar los cambios y luego ejecutar:
+
+```bash
+git commit --amend
+git rebase --continue
+```
+
+---
+
+## Reordenar y Eliminar Confirmaciones
+
+El rebase interactivo tambien te permite reordenar o eliminar _commits_ completamente.
+Si quieres eliminar el _commit_ "added cat-file" y cambiar el orden de las otras dos, puedes cambiar el script de esto:
+
+```bash
+pick f7f3f6d changed my name a bit
+pick 310154e updated README formatting and added blame
+pick a5f4a0d added cat-file
+```
+
+A esto:
+
+```bash
+pick 310154e updated README formatting and added blame
+pick f7f3f6d changed my name a bit
+```
+
+Al guardar y salir, _Git_ rebobina tu rama al padre de esos _commits_, aplica `310154e` y luego `f7f3f6d`, y luego se detiene.
+Has cambiado efectivamente el orden de esos _commits_ y eliminado la de "added cat-file" completamente.
+
+---
+
+## Combinar _Commits_ (_Squash_)
+
+Con el rebase interactivo tambien es posible tomar una serie de _commits_ y unirlos en uno solo.
+El script pone instrucciones utiles en el mensaje del rebase:
+
+<br />
+
+Para unir tres _commits_ en uno, cambia el script de esto:
+
+```bash
+pick f7f3f6d changed my name a bit
+pick 310154e updated README formatting and added blame
+pick a5f4a0d added cat-file
+```
+
+A esto:
+
+```bash
+pick f7f3f6d changed my name a bit
+squash 310154e updated README formatting and added blame
+squash a5f4a0d added cat-file
+```
+
+Al guardar y salir, _Git_ aplica los tres cambios y luego te devuelve al editor para que combines los tres mensajes de los _commits_ en uno solo.
+
+---
+
+## Dividir un _Commit_
+
+Dividir un _commit_ lo deshace y luego lo organiza y confirma parcialmente tantas veces como _commits_ quieras obtener de el.
+Supongamos que quieres dividir el del medio de tus tres _commits_. En lugar de "updated README formatting and added blame",
+quieres dividirlo en dos: "updated README formatting" en el primero, y "added blame" en el segundo.
+
+<br />
+
+En el script de `rebase -i`, cambia `pick` por `edit`:
+
+```bash
+pick f7f3f6d changed my name a bit
+edit 310154e updated README formatting and added blame
+pick a5f4a0d added cat-file
+```
+
+Cuando el script te deje en la linea de comando, deshaces ese _commit_ con `git reset HEAD^`, que deshace el _commit_ y deja los archivos modificados sin preparar.
+Ahora puedes preparar y confirmar los archivos hasta que tengas varios _commits_, y luego ejecutar `git rebase --continue` cuando hayas terminado:
+
+```bash
+git reset HEAD^
+git add README
+git commit -m 'updated README formatting'
+git add lib/simplegit.rb
+git commit -m 'added blame'
+git rebase --continue
+```
+
+---
+
+## La Opcion Nuclear: _filter-branch_
+
+Existe otra opcion para reescribir la historia que puedes usar si necesitas reescribir un gran numero de _commits_ de forma programatica
+— por ejemplo, cambiar tu direccion de correo electronico globalmente, o eliminar un archivo de cada _commit_.
+
+<br />
+
+El comando es `filter-branch` y puede reescribir grandes franjas de tu historia.
+No deberias usarlo a menos que tu proyecto aun no sea publico y nadie haya basado su trabajo en los _commits_ que estas a punto de reescribir.
+
+### Eliminar un archivo de cada _Commit_
+
+Para eliminar un archivo llamado `passwords.txt` de toda tu historia:
+
+```bash
+git filter-branch --tree-filter 'rm -f passwords.txt' HEAD
+```
+
+La opcion `--tree-filter` ejecuta el comando especificado despues de cada extraccion del proyecto y luego vuelve a confirmar los resultados.
+En este caso, eliminas un archivo llamado `passwords.txt` de cada _snapshot_, tanto si existe como si no.
+
+<br />
+
+Para ejecutarlo en todas las ramas:
+
+```bash
+git filter-branch --tree-filter 'rm -f passwords.txt' --all
+```
+
+---
+
+### Hacer de un subdirectorio la nueva raiz
+
+Supongamos que has importado desde otro sistema de control de versiones y tienes subdirectorios que no tienen sentido (`trunk/`, `tags/`, etc.).
+Si quieres hacer del subdirectorio `trunk/` la nueva raiz del proyecto:
+
+```bash
+git filter-branch --subdirectory-filter trunk HEAD
+```
+
+### Cambiar la direccion de correo electronico globalmente
+
+Para cambiar tu direccion de correo electronico en todos los _commits_:
+
+```bash
+git filter-branch --commit-filter '
+    if [ "$GIT_AUTHOR_EMAIL" = "schacon@localhost" ];
+    then
+        GIT_AUTHOR_NAME="Scott Chacon";
+        GIT_AUTHOR_EMAIL="schacon@example.com";
+        git commit-tree "$@";
+    else
+        git commit-tree "$@";
+    fi' HEAD
+```
+
+> `filter-branch` reescribe todos los SHA-1 de cada _commit_ en tu historia. Trata este comando como dinamita: usalo solo cuando sepas exactamente lo que estas haciendo.
 
 ---
 
