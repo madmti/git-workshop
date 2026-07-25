@@ -1,0 +1,52 @@
+---
+interface Props {
+	title: string;
+	link?: string;
+	label?: string;
+	badge?: string;
+	draft?: boolean;
+}
+
+const { title, link, label, badge, draft = false } = Astro.props;
+---
+
+<div
+	class:list={['my-6 rounded border-l-4 border-primary bg-content/5 p-6', { 'opacity-40': draft }]}
+>
+	<div class="mb-3 flex items-center gap-3">
+		<span class="font-mono text-xs tracking-widest text-primary uppercase">Ejercicio</span>
+		{
+			badge && (
+				<span class="rounded bg-primary/20 px-2 py-0.5 font-mono text-xs tracking-wider text-primary uppercase">
+					{badge}
+				</span>
+			)
+		}
+		{
+			draft && (
+				<span class="font-mono text-xs tracking-widest text-content/30 uppercase">[ DRAFT ]</span>
+			)
+		}
+	</div>
+
+	<h3 class="mb-4 text-lg font-bold text-content">{title}</h3>
+
+	<div class="mdx-content">
+		<slot />
+	</div>
+
+	{
+		link && (
+			<div class="mt-4 border-t border-content/10 pt-3">
+				<a
+					href={link}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="font-mono text-xs text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
+				>
+					↗ {label ? label : link}
+				</a>
+			</div>
+		)
+	}
+</div>
