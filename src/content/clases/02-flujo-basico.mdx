@@ -14,6 +14,7 @@ draft: false
 import ImageSet from 'MDX/ImageSet.astro';
 import Image from 'MDX/Image.astro';
 import FullTitle from 'MDX/FullTitle.astro';
+import Ejercicio from 'MDX/Ejercicio.astro';
 
 <FullTitle>
     <span class="flex flex-col items-center">
@@ -222,8 +223,8 @@ Modificas el archivo y ahora estas listo para confirmar. Sin embargo, ejecutemos
 
 <br/>
 
-Ahora `CONTRIBUTING.md` aparece como preparado y como no preparado
-Resulta que _Git_ prepara un archivo de acuerdo al estaod que tenia cuando ejecutas el comando `git add`.
+Ahora `CONTRIBUTING.md` aparece como preparado y como no preparado.
+Resulta que _Git_ prepara un archivo de acuerdo al estado que tenia cuando ejecutas el comando `git add`.
 Si confirmas ahora, se confirmara la version de `CONTRIBUTING.md` que tenias la ultima vez que ejecutaste `git add`
 y no la version que ves ahora en tu directorio de trbaajo al ejecutar `git status`.
 
@@ -423,6 +424,19 @@ Changes to be committed:
 
     renamed:    README.md -> README
 ```
+
+---
+
+<Ejercicio draft title="Estados y Staging" link="" label="Ver Kahoot" badge="01" >
+    Entrar al kahoot y esperar el codigo de la sala, o sino presionar la opcion *"Aprende"* para responder de forma individual.
+</Ejercicio>
+
+<Ejercicio draft title="Flujo básico: init, add y commit" link="" label="Descargar targz" badge="02" >
+    - Descargar targz
+    - Descomprimir con `tar -xzf 02-`
+    - Entrar a la carpeta con `cd 02-`
+    - Leer readme con `glow README.md`
+</Ejercicio>
 
 ---
 
@@ -776,6 +790,15 @@ git config --global alias.unstage "restore --staged"
 
 > Git simplemente sustituye el nuevo comando por lo que hayas puesto en el alias.
 > Usaremos `git lg` constantemente a partir de la clase 3 para visualizar el DAG.
+
+---
+
+<Ejercicio draft title="Deshacer, Alias y Remotos" link="" label="Descargar targz" badge="03" >
+    - Descargar targz
+    - Descomprimir con `tar -xzf 02-`
+    - Entrar a la carpeta con `cd 02-`
+    - Leer readme con `glow README.md`
+</Ejercicio>
 
 ---
 
