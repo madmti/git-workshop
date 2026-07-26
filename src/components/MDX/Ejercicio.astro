@@ -31,7 +31,10 @@ const finalDraft = exerciseData?.data.draft ?? draft;
 ---
 
 <div
-	class:list={['my-6 rounded border-l-4 border-primary bg-content/5 p-6', { 'opacity-40': finalDraft }]}
+	class:list={[
+		'my-6 rounded border-l-4 border-primary bg-content/5 p-6',
+		{ 'opacity-40': finalDraft }
+	]}
 >
 	<div class="mb-3 flex items-center gap-3">
 		<span class="font-mono text-xs tracking-widest text-primary uppercase">Ejercicio</span>
