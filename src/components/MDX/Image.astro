@@ -51,10 +51,17 @@ const fitClass = {
 }[fit];
 ---
 
-<div class={`relative mb-4 w-full overflow-hidden border border-content/10 bg-content/5 ${tw}`}>
+<div
+	class={`relative mb-4 w-full cursor-pointer overflow-hidden border border-content/10 bg-content/5 ${tw}`}
+	role="button"
+	tabindex="0"
+	data-image-modal-url={url}
+	data-image-modal-alt={alt}
+>
 	<img
 		src={url}
 		alt={alt}
 		class={`${aspectClass} h-auto w-full ${fitClass} ${positionClass} opacity-90 transition-opacity duration-100 hover:opacity-100`}
+		draggable="false"
 	/>
 </div>

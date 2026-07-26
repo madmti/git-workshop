@@ -1,0 +1,320 @@
+---
+// Lightbox modal con zoom + pan — se incluye una sola vez en Layout
+---
+
+<dialog
+	id="image-modal"
+	class="fixed inset-0 z-50 m-0 h-full w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-black/80"
+>
+	<div id="modal-backdrop" class="flex h-full w-full items-center justify-center overflow-hidden">
+		<!-- Controles superiores -->
+		<div class="absolute top-4 right-4 z-10 flex items-center gap-2">
+			<button
+				id="modal-zoom-in"
+				type="button"
+				class="flex h-9 w-9 cursor-pointer items-center justify-center rounded border border-content/20 bg-base/80 text-content/70 backdrop-blur-sm transition-colors hover:border-primary hover:text-primary"
+				aria-label="Zoom in"
+			>
+				+
+			</button>
+			<button
+				id="modal-zoom-out"
+				type="button"
+				class="flex h-9 w-9 cursor-pointer items-center justify-center rounded border border-content/20 bg-base/80 text-content/70 backdrop-blur-sm transition-colors hover:border-primary hover:text-primary"
+				aria-label="Zoom out"
+			>
+				−
+			</button>
+			<button
+				id="modal-zoom-reset"
+				type="button"
+				class="flex h-9 w-9 cursor-pointer items-center justify-center rounded border border-content/20 bg-base/80 text-content/70 backdrop-blur-sm transition-colors hover:border-primary hover:text-primary"
+				aria-label="Reset zoom"
+			>
+				↺
+			</button>
+			<button
+				id="modal-close"
+				type="button"
+				class="flex h-9 w-9 cursor-pointer items-center justify-center rounded border border-content/20 bg-base/80 text-content/70 backdrop-blur-sm transition-colors hover:border-primary hover:text-primary"
+				aria-label="Close"
+			>
+				✕
+			</button>
+		</div>
+
+		<!-- Imagen -->
+		<img
+			id="modal-image"
+			src=""
+			alt=""
+			class="max-h-[90vh] max-w-[90vw] object-contain select-none"
+			draggable="false"
+		/>
+
+		<!-- Indicador de zoom -->
+		<div
+			id="modal-zoom-label"
+			class="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded border border-content/10 bg-base/80 px-3 py-1 font-mono text-xs text-content/50 backdrop-blur-sm"
+		>
+			100%
+		</div>
+	</div>
+</dialog>
+
+<script is:inline>
+	(() => {
+		const dialog = document.getElementById('image-modal');
+		const backdrop = document.getElementById('modal-backdrop');
+		const img = document.getElementById('modal-image');
+		const zoomIn = document.getElementById('modal-zoom-in');
+		const zoomOut = document.getElementById('modal-zoom-out');
+		const zoomReset = document.getElementById('modal-zoom-reset');
+		const zoomLabel = document.getElementById('modal-zoom-label');
+		const closeBtn = document.getElementById('modal-close');
+
+		if (!dialog || !img || !backdrop) return;
+
+		const ZOOM_MIN = 0.5;
+		const ZOOM_MAX = 5;
+		const ZOOM_STEP = 0.25;
+
+		let zoom = 1;
+		let panX = 0;
+		let panY = 0;
+
+		let dragging = false;
+		let dragStartX = 0;
+		let dragStartY = 0;
+		let panStartX = 0;
+		let panStartY = 0;
+
+		let lastPinchDist = 0;
+		let didPan = false;
+
+		function applyTransform() {
+			img.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+			img.style.transformOrigin = 'center center';
+			if (zoomLabel) zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+		}
+
+		function clampPanTight() {
+			if (zoom <= 1) {
+				panX = 0;
+				panY = 0;
+				return;
+			}
+
+			const vw = window.innerWidth;
+			const vh = window.innerHeight;
+
+			const imgW = img.naturalWidth * zoom;
+			const imgH = img.naturalHeight * zoom;
+
+			const halfW = imgW / 2;
+			const halfH = imgH / 2;
+
+			const maxPanX = Math.max(0, halfW - vw / 2);
+			const maxPanY = Math.max(0, halfH - vh / 2);
+
+			panX = Math.max(-maxPanX, Math.min(maxPanX, panX));
+			panY = Math.max(-maxPanY, Math.min(maxPanY, panY));
+		}
+
+		function zoomAtPoint(newZoom, cx, cy) {
+			const vw = window.innerWidth;
+			const vh = window.innerHeight;
+
+			const oldZoom = zoom;
+			zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newZoom));
+
+			const scale = zoom / oldZoom;
+
+			const dx = cx - vw / 2;
+			const dy = cy - vh / 2;
+
+			panX = dx - scale * (dx - panX);
+			panY = dy - scale * (dy - panY);
+
+			clampPanTight();
+			applyTransform();
+		}
+
+		function resetView() {
+			zoom = 1;
+			panX = 0;
+			panY = 0;
+			img.style.transform = '';
+			img.style.transformOrigin = '';
+			if (zoomLabel) zoomLabel.textContent = '100%';
+		}
+
+		function openModal(src, alt) {
+			img.src = src;
+			img.alt = alt || '';
+			resetView();
+			img.style.cursor = 'grab';
+			if (!dialog.open) {
+				dialog.showModal();
+			}
+		}
+
+		function closeModal() {
+			if (dialog.open) {
+				dialog.close();
+			}
+		}
+
+		// ─── Abrir modal ─────────────────────────────────────────────────
+		document.addEventListener('click', (e) => {
+			if (dialog.open) return;
+			const target = e.target;
+			if (!(target instanceof HTMLElement)) return;
+
+			const clickable = target.closest('[data-image-modal-url]');
+			if (clickable) {
+				const url = clickable.getAttribute('data-image-modal-url');
+				const alt = clickable.getAttribute('data-image-modal-alt') || '';
+				if (url) openModal(url, alt);
+			}
+		});
+
+		// ─── Cerrar modal ────────────────────────────────────────────────
+		closeBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			closeModal();
+		});
+
+		backdrop.addEventListener('click', (e) => {
+			if (e.target === backdrop) closeModal();
+		});
+
+		document.addEventListener('keydown', (e) => {
+			if (!dialog.open) return;
+			if (e.key === 'Escape') closeModal();
+		});
+
+		// ─── Zoom con scroll wheel ───────────────────────────────────────
+		backdrop.addEventListener(
+			'wheel',
+			(e) => {
+				e.preventDefault();
+				const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+				zoomAtPoint(zoom + delta, e.clientX, e.clientY);
+			},
+			{ passive: false }
+		);
+
+		// ─── Botones zoom ────────────────────────────────────────────────
+		zoomIn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			zoomAtPoint(zoom + ZOOM_STEP, window.innerWidth / 2, window.innerHeight / 2);
+		});
+
+		zoomOut.addEventListener('click', (e) => {
+			e.stopPropagation();
+			zoomAtPoint(zoom - ZOOM_STEP, window.innerWidth / 2, window.innerHeight / 2);
+		});
+
+		zoomReset.addEventListener('click', (e) => {
+			e.stopPropagation();
+			resetView();
+		});
+
+		// ─── Pan con mouse drag ──────────────────────────────────────────
+		backdrop.addEventListener('mousedown', (e) => {
+			if (e.button !== 0) return;
+			if (e.target.closest('button')) return;
+
+			dragging = true;
+			didPan = false;
+			dragStartX = e.clientX;
+			dragStartY = e.clientY;
+			panStartX = panX;
+			panStartY = panY;
+			backdrop.style.cursor = 'grabbing';
+		});
+
+		window.addEventListener('mousemove', (e) => {
+			if (!dragging) return;
+			const dx = e.clientX - dragStartX;
+			const dy = e.clientY - dragStartY;
+
+			if (Math.abs(dx) > 2 || Math.abs(dy) > 2) didPan = true;
+
+			panX = panStartX + dx;
+			panY = panStartY + dy;
+			clampPanTight();
+			applyTransform();
+		});
+
+		window.addEventListener('mouseup', () => {
+			if (dragging) {
+				dragging = false;
+				backdrop.style.cursor = '';
+			}
+		});
+
+		// ─── Touch: pinch-to-zoom + drag ─────────────────────────────────
+		backdrop.addEventListener(
+			'touchstart',
+			(e) => {
+				const touches = e.touches;
+				if (touches.length === 2) {
+					const dx = touches[0].clientX - touches[1].clientX;
+					const dy = touches[0].clientY - touches[1].clientY;
+					lastPinchDist = Math.hypot(dx, dy);
+				} else if (touches.length === 1) {
+					dragging = true;
+					didPan = false;
+					dragStartX = touches[0].clientX;
+					dragStartY = touches[0].clientY;
+					panStartX = panX;
+					panStartY = panY;
+				}
+			},
+			{ passive: true }
+		);
+
+		backdrop.addEventListener(
+			'touchmove',
+			(e) => {
+				const touches = e.touches;
+
+				if (touches.length === 2) {
+					e.preventDefault();
+					const dx = touches[0].clientX - touches[1].clientX;
+					const dy = touches[0].clientY - touches[1].clientY;
+					const dist = Math.hypot(dx, dy);
+
+					if (lastPinchDist > 0) {
+						const cx = (touches[0].clientX + touches[1].clientX) / 2;
+						const cy = (touches[0].clientY + touches[1].clientY) / 2;
+						const scale = dist / lastPinchDist;
+						zoomAtPoint(zoom * scale, cx, cy);
+					}
+
+					lastPinchDist = dist;
+				} else if (touches.length === 1 && dragging) {
+					e.preventDefault();
+					const dx = touches[0].clientX - dragStartX;
+					const dy = touches[0].clientY - dragStartY;
+
+					if (Math.abs(dx) > 2 || Math.abs(dy) > 2) didPan = true;
+
+					panX = panStartX + dx;
+					panY = panStartY + dy;
+					clampPanTight();
+					applyTransform();
+				}
+			},
+			{ passive: false }
+		);
+
+		backdrop.addEventListener('touchend', () => {
+			dragging = false;
+			lastPinchDist = 0;
+		});
+	})();
+</script>
