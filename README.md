@@ -2,9 +2,9 @@
 
 Taller de Git (2026-2) con enfoque en fundamentos, internos y herramientas avanzadas.
 
-Sitio desplegado: https://madmti.github.io/git-workshop/
 
-Repositorio de ejercicios: https://github.com/madmti/git-workshop-labs
+- [Taller de Git (sitio web)](https://madmti.github.io/git-workshop/)
+- [Laboratorios Taller de Git (repositorio de ejercicios)](https://github.com/madmti/git-workshop-labs)
 
 ## Indice de clases
 
