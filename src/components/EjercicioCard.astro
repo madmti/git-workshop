@@ -1,0 +1,64 @@
+---
+interface Props {
+	title: string;
+	description: string;
+	clase: string;
+	badge: string;
+	link: string;
+	label?: string;
+	tipo: 'kahoot' | 'targz' | 'url';
+	draft: boolean;
+}
+
+const { title, description, clase, badge, link, label, tipo, draft } = Astro.props;
+
+const tipoConfig = {
+	kahoot: { text: 'Kahoot', color: 'text-purple-400' },
+	targz: { text: ' targz', color: 'text-blue-400' },
+	url: { text: 'Enlace', color: 'text-green-400' }
+}[tipo];
+---
+
+{
+	draft ? (
+		<div
+			class="flex cursor-not-allowed flex-col gap-3 rounded border border-content/10 bg-content/5 p-6 opacity-40 select-none"
+			aria-disabled="true"
+		>
+			<div class="flex items-center justify-between">
+				<span class="font-mono text-xs tracking-widest text-content/40 uppercase">
+					{clase} — Ej. {badge}
+				</span>
+				<span class="font-mono text-xs tracking-widest text-content/30 uppercase">[ DRAFT ]</span>
+			</div>
+			<h2 class="text-lg font-bold text-content/50">{title}</h2>
+			<p class="text-sm leading-6 text-content/40">{description}</p>
+			<div class="mt-2 flex items-center gap-4">
+				<span class={`font-mono text-xs ${tipoConfig.color} opacity-50`}>{tipoConfig.text}</span>
+			</div>
+		</div>
+	) : (
+		<a
+			href={link}
+			target="_blank"
+			rel="noopener noreferrer"
+			class="group flex flex-col gap-3 rounded border border-content/10 bg-content/5 p-6 transition-colors hover:border-primary/40 hover:bg-primary/5"
+		>
+			<div class="flex items-center justify-between">
+				<span class="font-mono text-xs tracking-widest text-content/40 uppercase">
+					{clase} — Ej. {badge}
+				</span>
+				<span class={`font-mono text-xs ${tipoConfig.color}`}>{tipoConfig.text}</span>
+			</div>
+			<h2 class="text-lg font-bold text-content transition-colors group-hover:text-primary">
+				{title}
+			</h2>
+			<p class="text-sm leading-6 text-content/60">{description}</p>
+			<div class="mt-2">
+				<span class="font-mono text-xs text-primary underline underline-offset-4 transition-colors group-hover:text-primary/80">
+					↗ {label ? label : link}
+				</span>
+			</div>
+		</a>
+	)
+}

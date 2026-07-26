@@ -1,50 +1,70 @@
 ---
+import { getCollection, render } from 'astro:content';
+
 interface Props {
-	title: string;
+	id?: string;
+	title?: string;
 	link?: string;
 	label?: string;
 	badge?: string;
 	draft?: boolean;
 }
 
-const { title, link, label, badge, draft = false } = Astro.props;
+const { id, title, link, label, badge, draft = false } = Astro.props;
+
+let exerciseData = null;
+let Content = null;
+
+if (id) {
+	const exercises = await getCollection('ejercicios');
+	exerciseData = exercises.find((e) => e.id === id) ?? null;
+	if (exerciseData) {
+		Content = (await render(exerciseData)).Content;
+	}
+}
+
+const finalTitle = exerciseData?.data.title ?? title ?? '';
+const finalLink = exerciseData?.data.link ?? link;
+const finalLabel = exerciseData?.data.label ?? label;
+const finalBadge = exerciseData?.data.badge ?? badge;
+const finalDraft = exerciseData?.data.draft ?? draft;
 ---
 
 <div
-	class:list={['my-6 rounded border-l-4 border-primary bg-content/5 p-6', { 'opacity-40': draft }]}
+	class:list={['my-6 rounded border-l-4 border-primary bg-content/5 p-6', { 'opacity-40': finalDraft }]}
 >
 	<div class="mb-3 flex items-center gap-3">
 		<span class="font-mono text-xs tracking-widest text-primary uppercase">Ejercicio</span>
 		{
-			badge && (
+			finalBadge && (
 				<span class="rounded bg-primary/20 px-2 py-0.5 font-mono text-xs tracking-wider text-primary uppercase">
-					{badge}
+					{finalBadge}
 				</span>
 			)
 		}
 		{
-			draft && (
+			finalDraft && (
 				<span class="font-mono text-xs tracking-widest text-content/30 uppercase">[ DRAFT ]</span>
 			)
 		}
 	</div>
 
-	<h3 class="mb-4 text-lg font-bold text-content">{title}</h3>
+	<h3 class="mb-4 text-lg font-bold text-content">{finalTitle}</h3>
 
 	<div class="mdx-content">
-		<slot />
+		{Content ? <Content /> : <slot />}
 	</div>
 
 	{
-		link && (
+		finalLink && (
 			<div class="mt-4 border-t border-content/10 pt-3">
 				<a
-					href={link}
+					href={finalLink}
 					target="_blank"
 					rel="noopener noreferrer"
 					class="font-mono text-xs text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
 				>
-					↗ {label ? label : link}
+					↗ {finalLabel ? finalLabel : finalLink}
 				</a>
 			</div>
 		)

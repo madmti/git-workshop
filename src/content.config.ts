@@ -23,4 +23,19 @@ const clases = defineCollection({
 	})
 });
 
-export const collections = { clases };
+const ejercicios = defineCollection({
+	loader: glob({ pattern: '**/*.mdx', base: './src/content/ejercicios' }),
+	schema: z.object({
+		title: z.string(),
+		description: z.string(),
+		clase: z.string(),
+		badge: z.string(),
+		link: z.string(),
+		label: z.string().optional(),
+		tipo: z.enum(['kahoot', 'targz', 'url']),
+		orden: z.number(),
+		draft: z.boolean().default(false)
+	})
+});
+
+export const collections = { clases, ejercicios };

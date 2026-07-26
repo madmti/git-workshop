@@ -1,14 +1,20 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import ClaseCard from '@/components/ClaseCard.astro';
+import EjercicioCard from '@/components/EjercicioCard.astro';
 import { getCollection } from 'astro:content';
 
-const entries = (await getCollection('clases')).sort((a, b) => a.data.orden - b.data.orden);
+const entries = (await getCollection('ejercicios')).sort((a, b) => a.data.orden - b.data.orden);
 ---
 
 <Layout>
 	<main class="h-screen overflow-y-auto scroll-smooth px-12 py-10 max-sm:h-svh max-sm:px-6">
-		<div class="mx-auto mb-8 flex max-w-6xl items-center justify-end">
+		<div class="mx-auto mb-8 flex max-w-6xl items-center justify-between">
+			<a
+				href={`${import.meta.env.BASE_URL}`}
+				class="font-mono text-xs tracking-widest text-content/40 uppercase transition-colors hover:text-primary"
+			>
+				Volver
+			</a>
 			<div class="flex items-center gap-2 text-xs tracking-widest text-content/60 uppercase">
 				<span class="text-content/50">Theme</span>
 				<button
@@ -29,49 +35,41 @@ const entries = (await getCollection('clases')).sort((a, b) => a.data.orden - b.
 			</div>
 		</div>
 		<header class="mx-auto mb-16 max-w-6xl">
-			<p class="mb-4 font-mono text-xs tracking-widest text-content/40 uppercase">Taller</p>
-			<h1 class="mb-4 text-5xl font-bold text-primary">Fundamentos y Arquitectura de Git</h1>
+			<p class="mb-4 font-mono text-xs tracking-widest text-content/40 uppercase">Ejercicios</p>
+			<h1 class="mb-4 text-5xl font-bold text-primary">Ejercicios del Taller</h1>
 			<p class="leading-7 text-content/60">
-				Un recorrido desde la historia de los sistemas de control de versiones hasta los internals
-				de Git — objetos, DAG, packfiles y flujo avanzado.
+				Resumen de todos los ejercicios disponibles. Cada ejercicio pertenece a una clase del taller
+				y puede ser un kahoot, un archivo descargable o un enlace externo.
 			</p>
-			<div class="mt-6 flex flex-wrap items-center gap-4 text-sm text-content/60">
-				<p class="text-muted-foreground">¿Buscas practicar o colaborar con el proyecto?</p>
-				<div class="flex items-center gap-2">
-					<a
-						href={`${import.meta.env.BASE_URL}ejercicios/`}
-						class="text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
-					>
-						Ver ejercicios
-					</a>
-					<span>o</span>
-					<a
-						href="https://github.com/madmti/git-workshop"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
-					>
-						explorar el repositorio
-					</a>
-				</div>
+			<div class="mt-6 flex flex-wrap items-center gap-2 text-sm text-content/60">
+				<p>Revisa el codigo de los ejercicios en</p>
+				<a
+					href="https://github.com/madmti/git-workshop-labs"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
+				>
+					git-workshop-labs
+				</a>
 			</div>
 		</header>
 
 		<section class="mx-auto max-w-6xl">
 			<h2 class="mb-8 font-mono text-xs tracking-widest text-content/40 uppercase">
-				[ {entries.length} capsulas ]
+				[ {entries.length} ejercicios ]
 			</h2>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				{
 					entries.map((entry) => (
-						<ClaseCard
-							label={entry.data.label}
+						<EjercicioCard
 							title={entry.data.title}
 							description={entry.data.description}
-							duracion={entry.data.duracion}
-							dificultad={entry.data.dificultad}
+							clase={entry.data.clase}
+							badge={entry.data.badge}
+							link={entry.data.link}
+							label={entry.data.label}
+							tipo={entry.data.tipo}
 							draft={entry.data.draft}
-							slug={entry.id}
 						/>
 					))
 				}
