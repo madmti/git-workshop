@@ -99,23 +99,11 @@
 		}
 
 		function clampPanTight() {
-			if (zoom <= 1) {
-				panX = 0;
-				panY = 0;
-				return;
-			}
-
 			const vw = window.innerWidth;
 			const vh = window.innerHeight;
 
-			const imgW = img.naturalWidth * zoom;
-			const imgH = img.naturalHeight * zoom;
-
-			const halfW = imgW / 2;
-			const halfH = imgH / 2;
-
-			const maxPanX = Math.max(0, halfW - vw / 2);
-			const maxPanY = Math.max(0, halfH - vh / 2);
+			const maxPanX = vw * 0.75;
+			const maxPanY = vh * 0.75;
 
 			panX = Math.max(-maxPanX, Math.min(maxPanX, panX));
 			panY = Math.max(-maxPanY, Math.min(maxPanY, panY));
