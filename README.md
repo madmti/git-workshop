@@ -26,7 +26,7 @@ Taller de Git (2026-2) con enfoque en fundamentos, internos y herramientas avanz
 |---|---|---|---|---|---|
 | CLASE 01 | Introduccion a VCS + Fundamentos Git | Evolucion de los VCS y fundamentos de Git (snapshots, areas, configuracion) | 40m | facil | 2 |
 | CLASE 02 | Flujo basico de Git | init, clone, add, commit, log, status, diff, restore, aliases | 1h | facil | 3 |
-| CLASE 03 | Internals pt.1: El modelo de objetos | blob, tree, commit, tag y comandos de fontaneria | 40m | dificil | 0 |
+| CLASE 03 | Internals pt.1: El modelo de objetos | blob, tree, commit, tag y comandos de fontaneria | 40m | dificil | 2 |
 | CLASE 04 | Internals pt.2: Referencias, HEAD y el DAG | refs, HEAD simbolico, packfiles, reflog, fsck, variables de entorno | 1h | dificil | 0 |
 | CLASE 05 | Branch & Merge en profundidad | Ramificacion, fusion, conflictos y gestion de ramas | 1h | media | 0 |
 | CLASE 06 | Flujos remotos + Rebase | Ramas remotas, tracking, fetch/pull/push, rebase y sus peligros | 1h | dificil | 0 |
