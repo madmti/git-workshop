@@ -17,6 +17,7 @@ import ImageSet from 'MDX/ImageSet.astro';
 import SideImage from 'MDX/SideImage.astro';
 import Image from 'MDX/Image.astro';
 import FullTitle from 'MDX/FullTitle.astro';
+import Ejercicio from 'MDX/Ejercicio.astro';
 
 ---
 
@@ -110,7 +111,7 @@ ab1afef HEAD@{1}: commit: modified repo a bit
 Puedes ver que perdiste los _commits_ `ab1afef` y `484a592`. Para recuperarlos, crea una nueva rama apuntando a ese commit:
 
 ```bash
-git branch recover-branch ab1afef
+git branch recover-branch ab1afef # recover-branch no es comando, es el nombre de la rama
 git log --pretty=oneline recover-branch
 ab1afef80fac8e34258959aa4e8e7b6e655e9e8b modified repo a bit
 484a59275031909876a47e24d18424ca6e0c4bf5 added repo.rb
@@ -135,6 +136,10 @@ dangling blob 7108f7ecb345ee9d0084193f147cdad4d2998293 # Blob perdido
 ```
 
 El `dangling commit` es el _commit_ que perdiste. Puedes recuperarla de la misma forma: creando una rama apuntando a ese _checksum SHA-1_.
+
+---
+
+<Ejercicio id="10-recuperacion-commits" />
 
 ---
 
@@ -251,6 +256,10 @@ Aqui las mas utiles para el dia a dia:
 <br/>
 
 > La referencia completa esta en el [Cap. 10.8 de Pro Git](https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables).
+
+---
+
+<Ejercicio id="11-mantenimiento-limpieza-historico" />
 
 ---
 
