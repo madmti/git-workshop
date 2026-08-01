@@ -14,6 +14,7 @@ draft: false
 import ImageSet from 'MDX/ImageSet.astro';
 import SideImage from 'MDX/SideImage.astro';
 import FullTitle from 'MDX/FullTitle.astro';
+import Ejercicio from 'MDX/Ejercicio.astro';
 
 <FullTitle>
     <span class="flex flex-col items-center">
@@ -245,6 +246,10 @@ git log --oneline --decorate --graph --all
 > Debido a que una rama de _Git_ es realmente un simple archivo que contiene 40 caracteres de un _checksum_ `SHA-1`,
 > no cuesta nada crear y destruir ramas en _Git_.
 > Crear una nueva rama es tan rapido y simple como escribir 41 bytes en un archivo.
+
+---
+
+<Ejercicio id="12-ramas-head-bifurcacion" />
 
 ---
 
@@ -480,6 +485,10 @@ git branch -d iss53
 
 ---
 
+<Ejercicio id="13-ramas-y-fusiones" />
+
+---
+
 ## Principales Conflictos que pueden surgir en las _fusiones_
 
 En ocasiones, los procesos de fusion no suelen ser fluidos.
@@ -517,7 +526,7 @@ no changes added to commit (use "git add" and/or "git commit -a")
 _Git_ añade marcadores de resolucion de conflictos en los archivos con problemas.
 El archivo afectado tendra una seccion similar a esta:
 
-```
+```html
 <<<<<<< HEAD:index.html
 <div id="footer">contact : email.support@github.com</div>
 =======
@@ -607,6 +616,10 @@ If you are sure you want to delete it, run 'git branch -D testing'.
 ```
 
 Si realmente deseas borrarla y perder ese trabajo, puedes forzar el borrado con `git branch -D`.
+
+---
+
+<Ejercicio id="14-resolver-conflictos" />
 
 ---
 
