@@ -29,9 +29,9 @@ Taller de Git (2026-2) con enfoque en fundamentos, internos y herramientas avanz
 | CLASE 01 | Introduccion a VCS + Fundamentos Git | Evolucion de los VCS y fundamentos de Git (snapshots, areas, configuracion) | 40m | facil | 2 |
 | CLASE 02 | Flujo basico de Git | init, clone, add, commit, log, status, diff, restore, aliases | 1h | facil | 3 |
 | CLASE 03 | Internals pt.1: El modelo de objetos | blob, tree, commit, tag y comandos de fontaneria | 40m | dificil | 2 |
-| CLASE 04 | Internals pt.2: Referencias, HEAD y el DAG | refs, HEAD simbolico, etiquetas, referencias a remotos y packfiles | 30m | dificil | 0 |
-| CLASE 05 | Internals pt.3: Mantenimiento y Recuperacion | gc, reflog, fsck, eliminar archivos grandes del historial y variables de entorno | 30m | dificil | 0 |
-| CLASE 06 | Branch & Merge en profundidad | Ramificacion, fusion, conflictos y gestion de ramas | 1h | media | 0 |
+| CLASE 04 | Internals pt.2: Referencias, HEAD y el DAG | refs, HEAD simbolico, etiquetas, referencias a remotos y packfiles | 30m | dificil | 2 |
+| CLASE 05 | Internals pt.3: Mantenimiento y Recuperacion | gc, reflog, fsck, eliminar archivos grandes del historial y variables de entorno | 30m | dificil | 2 |
+| CLASE 06 | Branch & Merge en profundidad | Ramificacion, fusion, conflictos y gestion de ramas | 1h | media | 3 |
 | CLASE 07 | Flujos de trabajo y Ramas Remotas | Flujos ramificados, ramas remotas, tracking, fetch/pull/push y publicacion | 30m | dificil | 0 |
 | CLASE 08 | Rebase: Reorganizar el Trabajo Realizado | Rebase basico, --onto, peligros de reescribir trabajo publicado y rebase vs merge | 30m | dificil | 0 |
 | CLASE 09 | Herramientas avanzadas pt.1: Organizacion | Seleccion de revision, rangos, cherry-pick, add -p, stash y clean | 1h | dificil | 0 |
