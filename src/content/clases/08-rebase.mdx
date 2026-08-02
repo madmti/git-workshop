@@ -14,6 +14,7 @@ draft: false
 import ImageSet from 'MDX/ImageSet.astro';
 import SideImage from 'MDX/SideImage.astro';
 import FullTitle from 'MDX/FullTitle.astro';
+import Ejercicio from 'MDX/Ejercicio.astro';
 
 {/*
 ==========================================================
@@ -205,6 +206,10 @@ git branch -d server
 
 ---
 
+<Ejercicio id="17-rebase-onto" />
+
+---
+
 ## Los Peligros del _Rebase_
 
 El rebase tiene un coste: **nunca reorganices confirmaciones que ya hayas enviado a un repositorio publico**.
@@ -308,6 +313,10 @@ No hay una respuesta unica correcta. _Git_ es una herramienta poderosa y cada eq
 
 Reorganiza libremente en **ramas locales o en ramas puntuales que solo tu estes trabajando**.
 Evita el rebase en ramas de largo recorrido compartidas (`master`, `develop`, etc.) o en cualquier rama sobre la que alguien mas haya basado su trabajo.
+
+---
+
+<Ejercicio id="18-rebase-conceptos-peligros" />
 
 ---
 

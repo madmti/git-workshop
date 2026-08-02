@@ -4,7 +4,7 @@
 
 <dialog
 	id="image-modal"
-	class="fixed inset-0 z-50 m-0 h-full w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-black/80"
+	class="fixed inset-0 z-50 m-0 h-full w-full max-w-none border-0 bg-transparent p-0"
 >
 	<div id="modal-backdrop" class="flex h-full w-full items-center justify-center overflow-hidden">
 		<!-- Controles superiores -->
@@ -68,6 +68,29 @@
 				>
 			</button>
 			<button
+				id="modal-focus"
+				type="button"
+				class="flex h-9 w-9 cursor-pointer items-center justify-center rounded border border-content/20 bg-base/80 text-content/70 backdrop-blur-sm transition-colors hover:border-primary hover:text-primary data-[active=true]:border-primary data-[active=true]:text-primary"
+				aria-label="Modo foco"
+				aria-pressed="false"
+				title="Modo foco"
+			>
+				<svg
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle
+						cx="12"
+						cy="12"
+						r="3"></circle></svg
+				>
+			</button>
+			<button
 				id="modal-close"
 				type="button"
 				class="flex h-9 w-9 cursor-pointer items-center justify-center rounded border border-content/20 bg-base/80 text-content/70 backdrop-blur-sm transition-colors hover:border-primary hover:text-primary"
@@ -105,6 +128,17 @@
 	</div>
 </dialog>
 
+<style>
+	#image-modal::backdrop {
+		background: rgb(0 0 0 / var(--modal-focus-opacity, 0.8));
+		transition: background 0.2s ease;
+	}
+
+	#image-modal[data-focus]::backdrop {
+		--modal-focus-opacity: 1;
+	}
+</style>
+
 <script is:inline>
 	(() => {
 		const dialog = document.getElementById('image-modal');
@@ -115,6 +149,7 @@
 		const zoomReset = document.getElementById('modal-zoom-reset');
 		const zoomLabel = document.getElementById('modal-zoom-label');
 		const closeBtn = document.getElementById('modal-close');
+		const focusBtn = document.getElementById('modal-focus');
 
 		if (!dialog || !img || !backdrop) return;
 
@@ -134,6 +169,8 @@
 
 		let lastPinchDist = 0;
 		let didPan = false;
+
+		let focusMode = false;
 
 		function applyTransform() {
 			img.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
@@ -252,6 +289,23 @@
 			e.stopPropagation();
 			resetView();
 		});
+
+		// ─── Modo foco ───────────────────────────────────────────────────
+		if (focusBtn) {
+			function applyFocusMode() {
+				dialog.toggleAttribute('data-focus', focusMode);
+				focusBtn.setAttribute('aria-pressed', String(focusMode));
+				focusBtn.dataset.active = String(focusMode);
+			}
+
+			focusBtn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				focusMode = !focusMode;
+				applyFocusMode();
+			});
+
+			applyFocusMode();
+		}
 
 		// ─── Pan con mouse drag ──────────────────────────────────────────
 		backdrop.addEventListener('mousedown', (e) => {
