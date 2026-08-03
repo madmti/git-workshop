@@ -14,6 +14,7 @@ draft: false
 import FullTitle from 'MDX/FullTitle.astro';
 import Image from 'MDX/Image.astro';
 import ImageSet from 'MDX/ImageSet.astro';
+import Ejercicio from 'MDX/Ejercicio.astro';
 
 <FullTitle>
     <span class="flex flex-col items-center">
@@ -204,6 +205,10 @@ Con `--hard`, el comando completa las tres operaciones. Deshace el ultimo commit
 
 ---
 
+<Ejercicio id="25-reset-tres-arboles" />
+
+---
+
 ## Reset con una Ruta
 
 Si especificas una ruta de archivo, `reset` omite el paso 1 (no puede mover HEAD a solo parte de un commit) y limita su accion a ese archivo especifico.
@@ -312,6 +317,10 @@ Y luego hacer un nuevo `git commit` que los agrupa a todos en uno:
 <br />
 
 > La columna HEAD dice "REF" si el comando mueve la rama a la que HEAD apunta, y "HEAD" si mueve el propio HEAD. Presta atencion especial a la columna "Seguro": si dice NO, piensalo bien antes de ejecutar.
+
+---
+
+<Ejercicio id="26-reset-desmitificado" />
 
 ---
 
