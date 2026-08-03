@@ -38,8 +38,8 @@ Taller de Git (2026-2) con enfoque en fundamentos, internos y herramientas avanz
 | CLASE 08 | Rebase: Reorganizar el Trabajo Realizado | Rebase basico, --onto, peligros de reescribir trabajo publicado y rebase vs merge | 30m | dificil | 2 |
 | CLASE 09 | Seleccion de revision y rangos | Checksum SHA-1 corto, referencias de rama, reflog, ancestros y rangos con doble punto, multiples puntos y triple punto | 20m | media | 2 |
 | CLASE 10 | Organizacion interactiva, stash y limpieza | Staging interactivo con git add -i y add -p, stash y clean | 40m | dificil | 2 |
-| CLASE 11 | Analisis y Reescritura | Busqueda en el historial con grep y git log -S/-G/-L, y reescritura con amend, rebase interactivo y filter-branch | 30m | dificil | 0 |
-| CLASE 12 | Reiniciar Desmitificado | Los tres arboles de Git, reset con --soft/--mixed/--hard, reset con rutas, squash con reset y reset vs checkout | 30m | dificil | 0 |
+| CLASE 11 | Analisis y Reescritura | Busqueda en el historial con grep y git log -S/-G/-L, y reescritura con amend, rebase interactivo y filter-branch | 30m | dificil | 2 |
+| CLASE 12 | Reiniciar Desmitificado | Los tres arboles de Git, reset con --soft/--mixed/--hard, reset con rutas, squash con reset y reset vs checkout | 30m | dificil | 2 |
 | EXTRA 01 | Tags | Etiquetado ligero y anotado, compartir etiquetas y checkout por etiqueta | 15m | facil | 0 |
 | EXTRA 02 | Refspec | Especificaciones de referencia y mapeos con ramas remotas | 15m | media | 0 |
 | EXTRA 03 | Git Hooks (borrador) | Hooks del lado del cliente: pre-commit, commit-msg, pre-push | 30m | media | 0 |
