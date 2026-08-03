@@ -20,9 +20,9 @@ Taller de Git (2026-2) con enfoque en fundamentos, internos y herramientas avanz
 - [CLASE 10 — Organizacion interactiva, stash y limpieza](https://madmti.github.io/git-workshop/clases/10-organizacion/)
 - [CLASE 11 — Analisis y Reescritura](https://madmti.github.io/git-workshop/clases/11-analisis-reescritura/)
 - [CLASE 12 — Reiniciar Desmitificado](https://madmti.github.io/git-workshop/clases/12-reiniciar-desmitificado/)
-- [EXTRA 01 — Tags](https://madmti.github.io/git-workshop/clases/10-extra/)
-- [EXTRA 02 — Refspec](https://madmti.github.io/git-workshop/clases/11-extra-2/)
-- [EXTRA 03 — Git Hooks (borrador)](https://madmti.github.io/git-workshop/clases/12-extra-3/)
+- [EXTRA 01 — Tags](https://madmti.github.io/git-workshop/clases/13-extra-1/)
+- [EXTRA 02 — Refspec](https://madmti.github.io/git-workshop/clases/14-extra-2/)
+- [EXTRA 03 — Git Hooks (borrador)](https://madmti.github.io/git-workshop/clases/15-extra-3/)
 
 ## Resumen por clase
 
