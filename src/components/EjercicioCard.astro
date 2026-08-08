@@ -42,6 +42,9 @@ const tipoConfig = {
 			href={link}
 			target="_blank"
 			rel="noopener noreferrer"
+			data-umami-event={tipo === 'url' ? undefined : 'click-ejercicio'}
+			data-umami-event-tipo={tipo === 'url' ? undefined : tipo}
+			data-umami-event-titulo={title}
 			class="group flex flex-col gap-3 rounded border border-content/10 bg-content/5 p-6 transition-colors hover:border-primary/40 hover:bg-primary/5"
 		>
 			<div class="flex items-center justify-between">

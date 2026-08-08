@@ -38,6 +38,9 @@ const dificultadColor = {
 	) : (
 		<a
 			href={`${import.meta.env.BASE_URL}clases/${slug}/`}
+			data-umami-event="click-clase"
+			data-umami-event-titulo={title}
+			data-umami-event-slug={slug}
 			class="group flex flex-col gap-3 rounded border border-content/10 bg-content/5 p-6 transition-colors hover:border-primary/40 hover:bg-primary/5"
 		>
 			<div class="flex items-center justify-between">

@@ -28,6 +28,7 @@ const finalLink = exerciseData?.data.link ?? link;
 const finalLabel = exerciseData?.data.label ?? label;
 const finalBadge = exerciseData?.data.badge ?? badge;
 const finalDraft = exerciseData?.data.draft ?? draft;
+const finalTipo = exerciseData?.data.tipo;
 ---
 
 <div
@@ -65,6 +66,9 @@ const finalDraft = exerciseData?.data.draft ?? draft;
 					href={finalLink}
 					target="_blank"
 					rel="noopener noreferrer"
+					data-umami-event={finalTipo === 'url' ? undefined : 'click-ejercicio'}
+					data-umami-event-tipo={finalTipo === 'url' ? undefined : (finalTipo ?? 'targz')}
+					data-umami-event-titulo={finalTitle}
 					class="font-mono text-xs text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
 				>
 					↗ {finalLabel ? finalLabel : finalLink}
