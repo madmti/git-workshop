@@ -1,5 +1,5 @@
 import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 const clases = defineCollection({
@@ -38,4 +38,15 @@ const ejercicios = defineCollection({
 	})
 });
 
-export const collections = { clases, ejercicios };
+const certificados = defineCollection({
+	loader: file('./src/content/certificados/certificados.json'),
+	schema: z.object({
+		name: z.string(),
+		date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+		hours: z.number(),
+		instructor: z.string(),
+		certifierUrl: z.url()
+	})
+});
+
+export const collections = { clases, ejercicios, certificados };

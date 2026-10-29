@@ -12,7 +12,8 @@
 		"preview": "astro preview",
 		"astro": "astro",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint ."
+		"lint": "prettier --check . && eslint .",
+		"sync:certs": "node scripts/sync-certifier.js"
 	},
 	"dependencies": {
 		"@astrojs/mdx": "5.0.6",

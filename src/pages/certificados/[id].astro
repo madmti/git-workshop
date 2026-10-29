@@ -1,0 +1,207 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+	const entries = await getCollection('certificados');
+	return entries.map((entry) => ({
+		params: { id: entry.id },
+		props: { cert: { id: entry.id, ...entry.data } }
+	}));
+}
+
+const { cert } = Astro.props;
+
+const date = new Date(`${cert.date}T00:00:00`);
+const dateLabel = date.toLocaleDateString('es-CL', {
+	day: 'numeric',
+	month: 'long',
+	year: 'numeric'
+});
+
+const certPath = `${import.meta.env.BASE_URL}certificados/${cert.id}/`;
+const certUrl = new URL(certPath, Astro.site).href;
+
+const linkedinUrl = `https://www.linkedin.com/profile/add-certification/?${new URLSearchParams({
+	name: 'Taller Fundamentos y Arquitectura de Git',
+	organizationName: 'LyOSS USM',
+	issueYear: String(date.getFullYear()),
+	issueMonth: String(date.getMonth() + 1),
+	certUrl,
+	certId: cert.id
+}).toString()}`;
+
+const buttonClass =
+	'cursor-pointer rounded border border-content/10 px-3 py-1 font-mono text-xs tracking-widest text-content/50 uppercase transition-colors hover:border-primary/40 hover:text-primary';
+---
+
+<Layout title={`Certificado ${cert.id} | Taller Git`} noindex>
+	<link slot="head" rel="preconnect" href="https://fonts.googleapis.com" />
+	<link slot="head" rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		slot="head"
+		rel="stylesheet"
+		href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap"
+	/>
+	<style slot="head" is:global>
+		@media print {
+			@page {
+				size: A4 landscape;
+				margin: 0;
+			}
+			html,
+			body,
+			#certificate-scroll {
+				height: auto !important;
+				overflow: visible !important;
+			}
+			body {
+				-webkit-print-color-adjust: exact;
+				print-color-adjust: exact;
+				background-color: white;
+			}
+			#certificate-scroll {
+				padding: 0 !important;
+			}
+			#certificate-sheet {
+				width: 297mm !important;
+				height: 210mm !important;
+				max-width: none !important;
+				aspect-ratio: auto !important;
+				margin: 0 !important;
+				border: 0 !important;
+				overflow: hidden;
+				break-inside: avoid;
+			}
+		}
+	</style>
+
+	<main id="certificate-scroll" class="h-screen overflow-y-auto px-12 py-10 max-sm:px-6">
+		<div class="mx-auto mb-8 flex max-w-5xl items-center justify-between print:hidden">
+			<a
+				href={import.meta.env.BASE_URL}
+				class="font-mono text-xs tracking-widest text-content/40 uppercase transition-colors hover:text-primary"
+			>
+				Volver
+			</a>
+			<div class="flex items-center gap-2 text-xs tracking-widest text-content/60 uppercase">
+				<span class="text-content/50">Theme</span>
+				<button
+					data-theme="dark"
+					type="button"
+					class="theme-option cursor-pointer tracking-wide uppercase"
+				>
+					Dark
+				</button>
+				<span class="pointer-events-none text-content/50">|</span>
+				<button
+					data-theme="light"
+					type="button"
+					class="theme-option cursor-pointer tracking-wide uppercase"
+				>
+					Light
+				</button>
+			</div>
+		</div>
+
+		<div class="mx-auto mb-6 flex max-w-5xl flex-wrap gap-2 print:hidden">
+			<button id="print-btn" type="button" class={buttonClass}>Imprimir a PDF</button>
+			<a href={cert.certifierUrl} target="_blank" rel="noopener noreferrer" class={buttonClass}>
+				Verificar en Certifier
+			</a>
+			<a href={linkedinUrl} target="_blank" rel="noopener noreferrer" class={buttonClass}>
+				Añadir a LinkedIn
+			</a>
+		</div>
+
+		<!-- Colores fijos (no tokens del tema) para que el PDF sea siempre claro -->
+		<section
+			id="certificate-sheet"
+			class="mx-auto flex aspect-[1.414] max-w-5xl flex-col justify-between border border-neutral-300 bg-white p-12 font-mono text-neutral-900 max-sm:p-4"
+		>
+			<header class="flex items-center justify-between gap-6">
+				<img
+					src={`${import.meta.env.BASE_URL}utfsm.png`}
+					alt="Universidad Técnica Federico Santa María"
+					class="h-10 w-auto max-sm:h-5"
+				/>
+				<img
+					src={`${import.meta.env.BASE_URL}lyoss.png`}
+					alt="LyOSS USM - Comunidad Linux y Open Source"
+					class="h-14 w-auto max-sm:h-7"
+				/>
+			</header>
+
+			<div class="text-center">
+				<img
+					src={`${import.meta.env.BASE_URL}favicon.svg`}
+					alt="Logo del taller"
+					class="mx-auto mb-4 h-10 w-auto max-sm:mb-2 max-sm:h-6"
+				/>
+				<p class="text-xs tracking-widest text-neutral-500 uppercase">
+					Certificado de finalización
+				</p>
+				<h1 class="mt-6 text-3xl font-bold max-sm:text-lg">{cert.name}</h1>
+				<p class="mt-6 text-sm max-sm:text-xs">
+					completó el taller <strong>Fundamentos y Arquitectura de Git</strong>,
+					<br />
+					con una duración de <strong>{cert.hours} horas</strong>, el {dateLabel}.
+				</p>
+			</div>
+
+			<div class="grid grid-cols-2 items-end gap-6 text-xs">
+				<div class="text-[10px] text-neutral-500">
+					<p>ID: {cert.id}</p>
+					<p class="break-all">{certUrl}</p>
+				</div>
+				<div class="text-center">
+					<p class="font-[Caveat] text-4xl leading-none max-sm:text-xl">{cert.instructor}</p>
+					<p class="mt-1 border-t border-neutral-400 pt-2">Instructor</p>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<script is:inline>
+		document.getElementById('print-btn').addEventListener('click', function () {
+			window.print();
+		});
+	</script>
+</Layout>
+
+<script is:inline>
+	(() => {
+		const body = document.body;
+		const themeOptions = document.querySelectorAll('button.theme-option');
+
+		if (!themeOptions.length) return;
+
+		const setActiveOption = (buttons, value, attr) => {
+			buttons.forEach((button) => {
+				const isActive = button.getAttribute(attr) === value;
+				button.classList.toggle('text-primary', isActive);
+				button.classList.toggle('text-content/60', !isActive);
+			});
+		};
+
+		const applyTheme = (theme) => {
+			if (theme === 'light') {
+				body.classList.add('light');
+			} else {
+				body.classList.remove('light');
+			}
+			setActiveOption(themeOptions, theme, 'data-theme');
+		};
+
+		const savedTheme = localStorage.getItem('theme') || 'light';
+		applyTheme(savedTheme);
+
+		themeOptions.forEach((button) => {
+			button.addEventListener('click', () => {
+				const nextTheme = button.getAttribute('data-theme') || 'light';
+				applyTheme(nextTheme);
+				localStorage.setItem('theme', nextTheme);
+			});
+		});
+	})();
+</script>

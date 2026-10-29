@@ -112,3 +112,9 @@ body {
 .mdx-content td code {
 	@apply bg-content/15 font-bold;
 }
+
+/* Todo botón habilitado es clickeable: mostrar pointer */
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']) {
+	cursor: pointer;
+}

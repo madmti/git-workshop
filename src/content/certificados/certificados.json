@@ -1,0 +1,10 @@
+[
+	{
+		"id": "LYOSS-GIT-2026-001",
+		"name": "Nombre del Alumno",
+		"date": "2026-10-28",
+		"hours": 20,
+		"instructor": "Matias Peñaloza B.",
+		"certifierUrl": "https://app.certifier.io/credential/ejemplo"
+	}
+]

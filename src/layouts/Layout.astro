@@ -1,5 +1,12 @@
 ---
 import ImageModal from '@/components/ImageModal.astro';
+
+interface Props {
+	title?: string;
+	noindex?: boolean;
+}
+
+const { title = 'Taller Git', noindex = false } = Astro.props;
 ---
 
 <!doctype html>
@@ -7,8 +14,10 @@ import ImageModal from '@/components/ImageModal.astro';
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Taller Git</title>
+		<title>{title}</title>
+		{noindex && <meta name="robots" content="noindex" />}
 		<link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+		<slot name="head" />
 		{
 			import.meta.env.PROD && (
 				<script
