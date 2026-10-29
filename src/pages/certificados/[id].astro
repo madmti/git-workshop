@@ -22,15 +22,6 @@ const dateLabel = date.toLocaleDateString('es-CL', {
 const certPath = `${import.meta.env.BASE_URL}certificados/${cert.id}/`;
 const certUrl = new URL(certPath, Astro.site).href;
 
-const linkedinUrl = `https://www.linkedin.com/profile/add-certification/?${new URLSearchParams({
-	name: 'Taller Fundamentos y Arquitectura de Git',
-	organizationName: 'LyOSS USM',
-	issueYear: String(date.getFullYear()),
-	issueMonth: String(date.getMonth() + 1),
-	certUrl,
-	certId: cert.id
-}).toString()}`;
-
 const buttonClass =
 	'cursor-pointer rounded border border-content/10 px-3 py-1 font-mono text-xs tracking-widest text-content/50 uppercase transition-colors hover:border-primary/40 hover:text-primary';
 ---
@@ -108,9 +99,6 @@ const buttonClass =
 			<button id="print-btn" type="button" class={buttonClass}>Imprimir a PDF</button>
 			<a href={cert.certifierUrl} target="_blank" rel="noopener noreferrer" class={buttonClass}>
 				Verificar en Certifier
-			</a>
-			<a href={linkedinUrl} target="_blank" rel="noopener noreferrer" class={buttonClass}>
-				Añadir a LinkedIn
 			</a>
 		</div>
 
