@@ -1,10 +1,18 @@
 [
 	{
 		"id": "LYOSS-GIT-2026-001",
-		"name": "Nombre del Alumno",
-		"date": "2026-10-28",
+		"name": "Cristian Quintanilla",
+		"date": "2026-10-29",
 		"hours": 20,
 		"instructor": "Matias Peñaloza B.",
-		"certifierUrl": "https://app.certifier.io/credential/ejemplo"
+		"certifierUrl": "https://credsverse.com/credentials/8dee07bb-98f7-4a7c-809d-919a3a513a85?preview=1"
+	},
+	{
+		"id": "LYOSS-GIT-2026-002",
+		"name": "Martin Espinoza",
+		"date": "2026-10-29",
+		"hours": 20,
+		"instructor": "Matias Peñaloza B.",
+		"certifierUrl": "https://credsverse.com/credentials/9dc0d87d-fd89-4faf-a8b8-1066a66e2ef7?preview=1"
 	}
 ]
